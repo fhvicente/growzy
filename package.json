@@ -1,0 +1,48 @@
+{
+    "name": "mini-horta-next",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "next dev",
+        "build": "next build",
+        "format": "tsc --noEmit",
+        "start": "next start",
+        "lint": "next lint",
+        "db:generate": "drizzle-kit generate",
+        "db:migrate": "drizzle-kit migrate",
+        "db:import:sqlite": "tsx scripts/migrate-sqlite-to-postgres.ts",
+        "auth:generate": "npx @better-auth/cli@latest generate"
+    },
+    "dependencies": {
+        "@hookform/resolvers": "^3.10.0",
+        "better-auth": "^1.4.18",
+        "better-sqlite3": "^11.10.0",
+        "class-variance-authority": "^0.7.1",
+        "clsx": "^2.1.1",
+        "dotenv": "^17.2.3",
+        "drizzle-orm": "^0.33.0",
+        "lucide-react": "^0.441.0",
+        "next": "^14.2.35",
+        "pg": "^8.18.0",
+        "react": "^18.3.1",
+        "react-dom": "^18.3.1",
+        "react-hook-form": "^7.71.1",
+        "stripe": "^16.12.0",
+        "tailwind-merge": "^2.6.1",
+        "zod": "^3.25.76"
+    },
+    "devDependencies": {
+        "@types/node": "^20.19.30",
+        "@types/pg": "^8.16.0",
+        "@types/react": "^18.3.27",
+        "@types/react-dom": "^18.3.7",
+        "autoprefixer": "^10.4.24",
+        "drizzle-kit": "^0.24.2",
+        "eslint": "^8.57.1",
+        "eslint-config-next": "^14.2.35",
+        "postcss": "^8.5.6",
+        "tailwindcss": "^3.4.19",
+        "tsx": "^4.21.0",
+        "typescript": "^5.9.3"
+    }
+}
