@@ -217,7 +217,7 @@ Key env vars inferred from config:
     - Config: [config/database.php](config/database.php)
 - Sessions: `SESSION_DRIVER`, `SESSION_LIFETIME`, `SESSION_COOKIE`, `SESSION_SECURE_COOKIE`.
     - Config: [config/session.php](config/session.php)
-- Stripe: `STRIPE_KEY`, `STRIPE_SECRET`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PREMIUM_PRICE_ID`.
+- Stripe: `STRIPE_KEY`, `STRIPE_SECRET`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_STANDARD_PRICE_ID`.
     - Config: [config/stripe.php](config/stripe.php)
 - Mail (for password resets, verification): `MAIL_*`.
     - Config: [config/mail.php](config/mail.php)

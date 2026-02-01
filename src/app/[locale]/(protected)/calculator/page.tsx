@@ -9,10 +9,15 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { Plus, Trash2, Calculator, Info } from "lucide-react";
 
-export default async function CalculatorPage() {
+interface CalculatorPageProps {
+	params: Promise<{ locale: string }>;
+}
+
+export default async function CalculatorPage({ params }: CalculatorPageProps) {
+	const { locale } = await params;
 	const session = await auth.api.getSession({ headers: await headers() });
 	if (!session) {
-		redirect("/login");
+		redirect(`/${locale}/login`);
 	}
 
 	// Mock plant data - replace with actual data from your database

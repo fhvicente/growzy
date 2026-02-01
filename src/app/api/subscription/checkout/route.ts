@@ -13,18 +13,19 @@ export async function POST(request: NextRequest) {
 		return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
 	}
 
-	const priceId = process.env.STRIPE_PREMIUM_PRICE_ID;
+	const priceId = process.env.STRIPE_STANDARD_PRICE_ID;
 	if (!priceId || !process.env.STRIPE_SECRET_KEY) {
 		return NextResponse.json({ ok: false, error: "Stripe not configured" }, { status: 500 });
 	}
 
 	const origin = request.headers.get("origin") ?? "http://localhost:3000";
+	const locale = request.headers.get("x-locale") ?? "pt";
 
 	const session = await stripe.checkout.sessions.create({
 		mode: "subscription",
 		line_items: [{ price: priceId, quantity: 1 }],
-		success_url: `${origin}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
-		cancel_url: `${origin}/subscription/cancel`,
+		success_url: `${origin}/${locale}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
+		cancel_url: `${origin}/${locale}/subscription/cancel`,
 		customer_email: user.email,
 		client_reference_id: String(user.id),
 		metadata: {

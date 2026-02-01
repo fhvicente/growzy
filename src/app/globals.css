@@ -37,6 +37,10 @@
 	--radius-sm: calc(0.75rem - 4px);
 }
 
+html {
+	scroll-behavior: smooth;
+}
+
 body {
 	background-color: var(--color-background);
 	color: var(--color-foreground);
