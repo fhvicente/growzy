@@ -56,10 +56,10 @@ export function SignUpForm() {
 					</div>
 					<div className="grid gap-2">
 						<Label htmlFor="email">Email</Label>
-						<Input id="email" name="email" type="email" placeholder="voce@email.com" required />
+						<Input id="email" name="email" type="email" placeholder="seu@email.com" required />
 					</div>
 					<div className="grid gap-2">
-						<Label htmlFor="password">Senha</Label>
+						<Label htmlFor="password">Palavra-passe</Label>
 						<Input id="password" name="password" type="password" required />
 					</div>
 					{error ? <p className="text-sm text-red-600">{error}</p> : null}
@@ -71,8 +71,8 @@ export function SignUpForm() {
 			<CardFooter>
 				<p className="text-sm text-gray-600">
 					Já tem conta?{" "}
-					<Link href="/login" className="text-primary hover:underline">
-						Entrar
+					<Link href="/login" className="text-primary hover:underline cursor-pointer">
+						Iniciar sessão
 					</Link>
 				</p>
 			</CardFooter>

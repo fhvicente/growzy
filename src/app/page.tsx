@@ -29,7 +29,7 @@ export default function HomePage() {
 								casa. Transforme o seu espaço num jardim produtivo.
 							</p>
 							<div className="mt-8 flex flex-col gap-4 sm:flex-row">
-								<Link href="/calculator">
+								<Link href="/calculator" className="cursor-pointer">
 									<Button size="lg" className="group w-full sm:w-auto">
 										Começar agora
 										<ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -144,7 +144,7 @@ export default function HomePage() {
 						Junte-se a milhares de utilizadores que já transformaram os seus espaços em hortas produtivas.
 					</p>
 					<div className="mt-8">
-						<Link href="/register">
+						<Link href="/register" className="cursor-pointer">
 							<Button
 								size="lg"
 								variant="secondary"

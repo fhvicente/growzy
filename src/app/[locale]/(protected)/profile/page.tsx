@@ -24,7 +24,7 @@ export default async function ProfilePage() {
 						<label className="text-sm font-medium">Email</label>
 						<Input type="email" defaultValue={session.user.email ?? ""} />
 					</div>
-					<Button>Salvar</Button>
+					<Button>Guardar</Button>
 				</div>
 			</Card>
 		</div>

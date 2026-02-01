@@ -126,7 +126,7 @@ export default async function DashboardPage() {
 								<CardTitle>Cálculos Recentes</CardTitle>
 								<CardDescription>Os seus projetos mais recentes</CardDescription>
 							</div>
-							<Link href="/calculator">
+							<Link href="/calculator" className="cursor-pointer">
 								<Button variant="outline" size="sm">
 									Ver todos
 								</Button>
@@ -159,7 +159,7 @@ export default async function DashboardPage() {
 									</div>
 									<div className="text-right">
 										<div className="text-lg font-bold text-gray-900">{calc.cost}</div>
-										<Link href={`/calculator/result/${calc.id}`}>
+										<Link href={`/calculator/result/${calc.id}`} className="cursor-pointer">
 											<Button variant="ghost" size="sm" className="mt-1">
 												Ver detalhes
 											</Button>
