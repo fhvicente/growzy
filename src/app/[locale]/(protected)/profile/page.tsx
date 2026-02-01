@@ -5,10 +5,15 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-export default async function ProfilePage() {
+interface ProfilePageProps {
+	params: Promise<{ locale: string }>;
+}
+
+export default async function ProfilePage({ params }: ProfilePageProps) {
+	const { locale } = await params;
 	const session = await auth.api.getSession({ headers: await headers() });
 	if (!session) {
-		redirect("/login");
+		redirect(`/${locale}/login`);
 	}
 
 	return (

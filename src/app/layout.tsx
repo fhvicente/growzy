@@ -1,7 +1,5 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import { Footer } from "@/components/footer";
-import { Header } from "@/components/header";
 
 export const metadata: Metadata = {
 	title: "Horta Fácil",
@@ -10,12 +8,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
 	return (
-		<html lang="pt">
-			<body>
-				<Header />
-				<main className="min-h-[80vh]">{children}</main>
-				<Footer />
-			</body>
+		<html>
+			<body>{children}</body>
 		</html>
 	);
 }

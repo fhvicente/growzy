@@ -1,24 +1,29 @@
+"use client";
+
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { Leaf, Mail, Github, Twitter } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 export function Footer() {
+	const params = useParams();
+	const locale = (params?.locale as string) || "pt";
 	const currentYear = new Date().getFullYear();
 
 	const footerLinks = {
 		product: [
-			{ name: "Calculadora", href: "/calculator" },
-			{ name: "Dashboard", href: "/dashboard" },
-			{ name: "Planos", href: "/pricing" },
+			{ name: "Calculadora", href: `/${locale}/calculator` },
+			{ name: "Dashboard", href: `/${locale}/dashboard` },
+			{ name: "Planos", href: `/${locale}/pricing` },
 		],
 		company: [
-			{ name: "Sobre", href: "/about" },
-			{ name: "Blog", href: "/blog" },
-			{ name: "Contacto", href: "/contact" },
+			{ name: "Sobre", href: `/${locale}/about` },
+			{ name: "Blog", href: `/${locale}/blog` },
+			{ name: "Contacto", href: `/${locale}/contact` },
 		],
 		legal: [
-			{ name: "Privacidade", href: "/privacy" },
-			{ name: "Termos", href: "/terms" },
+			{ name: "Privacidade", href: `/${locale}/privacy` },
+			{ name: "Termos", href: `/${locale}/terms` },
 		],
 	};
 

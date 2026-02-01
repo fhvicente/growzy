@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +12,8 @@ import { Label } from "@/components/ui/label";
 
 export function SignUpForm() {
 	const router = useRouter();
+	const params = useParams();
+	const locale = (params?.locale as string) || "pt";
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
@@ -29,7 +31,7 @@ export function SignUpForm() {
 			name,
 			email,
 			password,
-			callbackURL: "/dashboard",
+			callbackURL: `/${locale}/dashboard`,
 		});
 
 		setIsSubmitting(false);
@@ -39,7 +41,7 @@ export function SignUpForm() {
 			return;
 		}
 
-		router.push("/dashboard");
+		router.push(`/${locale}/dashboard`);
 	}
 
 	return (
@@ -71,7 +73,7 @@ export function SignUpForm() {
 			<CardFooter>
 				<p className="text-sm text-gray-600">
 					Já tem conta?{" "}
-					<Link href="/login" className="text-primary hover:underline cursor-pointer">
+					<Link href={`/${locale}/login`} className="text-primary hover:underline cursor-pointer">
 						Iniciar sessão
 					</Link>
 				</p>

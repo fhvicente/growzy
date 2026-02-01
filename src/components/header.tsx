@@ -1,22 +1,34 @@
 "use client";
 
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Leaf, Menu, X, Home, Calculator, LayoutDashboard, CreditCard, User, LogOut } from "lucide-react";
 import { useState } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import { authClient } from "@/lib/auth-client";
 
 export function Header() {
+	const params = useParams();
+	const locale = (params?.locale as string) || "pt";
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-	// TODO: Get actual session from better-auth
-	const isLoggedIn = false; // Replace with actual auth check
+	const { data: session } = authClient.useSession();
+	const isLoggedIn = !!session;
 
 	const navigation = [
-		{ name: "Início", href: "/", icon: Home },
-		{ name: "Calculadora", href: "/calculator", icon: Calculator },
-		{ name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-		{ name: "Planos", href: "/pricing", icon: CreditCard },
+		{ name: "Início", href: `/${locale}`, icon: Home },
+		{
+			name: "Calculadora",
+			href: `/${locale}/calculator`,
+			icon: Calculator,
+		},
+		{
+			name: "Dashboard",
+			href: `/${locale}/dashboard`,
+			icon: LayoutDashboard,
+		},
+		{ name: "Planos", href: `/${locale}/pricing`, icon: CreditCard },
 	];
 
 	return (
@@ -48,7 +60,7 @@ export function Header() {
 				<div className="hidden lg:flex lg:items-center lg:gap-4">
 					{isLoggedIn ? (
 						<div className="flex items-center gap-3">
-							<Link href="/profile">
+							<Link href={`/${locale}/profile`}>
 								<Button variant="ghost" size="icon">
 									<Avatar className="h-8 w-8">
 										<AvatarFallback className="bg-primary-100 text-primary-700">U</AvatarFallback>
@@ -63,10 +75,10 @@ export function Header() {
 						</div>
 					) : (
 						<>
-							<Link href="/login">
+							<Link href={`/${locale}/login`}>
 								<Button variant="ghost">Entrar</Button>
 							</Link>
-							<Link href="/register">
+							<Link href={`/${locale}/register`}>
 								<Button>Criar conta</Button>
 							</Link>
 						</>
@@ -102,7 +114,7 @@ export function Header() {
 						{isLoggedIn ? (
 							<>
 								<Link
-									href="/profile"
+									href={`/${locale}/profile`}
 									className="flex items-center gap-3 rounded-lg px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 cursor-pointer"
 									onClick={() => setMobileMenuOpen(false)}
 								>
@@ -117,7 +129,7 @@ export function Header() {
 						) : (
 							<div className="space-y-2 px-3 py-2">
 								<Link
-									href="/login"
+									href={`/${locale}/login`}
 									className="block cursor-pointer"
 									onClick={() => setMobileMenuOpen(false)}
 								>
@@ -126,7 +138,7 @@ export function Header() {
 									</Button>
 								</Link>
 								<Link
-									href="/register"
+									href={`/${locale}/register`}
 									className="block cursor-pointer"
 									onClick={() => setMobileMenuOpen(false)}
 								>

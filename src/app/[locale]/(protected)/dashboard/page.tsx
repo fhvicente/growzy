@@ -7,10 +7,15 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Calculator, TrendingUp, Leaf, Plus, ArrowUpRight, CalendarDays } from "lucide-react";
 
-export default async function DashboardPage() {
+interface DashboardPageProps {
+	params: Promise<{ locale: string }>;
+}
+
+export default async function DashboardPage({ params }: DashboardPageProps) {
+	const { locale } = await params;
 	const session = await auth.api.getSession({ headers: await headers() });
 	if (!session) {
-		redirect("/login");
+		redirect(`/${locale}/login`);
 	}
 
 	// Mock data - replace with actual data from your database
@@ -103,13 +108,13 @@ export default async function DashboardPage() {
 						<CardDescription>Comece um novo projeto ou explore funcionalidades</CardDescription>
 					</CardHeader>
 					<CardContent className="flex flex-wrap gap-3">
-						<Link href="/calculator">
+						<Link href={`/${locale}/calculator`}>
 							<Button className="gap-2">
 								<Calculator className="h-4 w-4" />
 								Novo Cálculo
 							</Button>
 						</Link>
-						<Link href="/pricing">
+						<Link href={`/${locale}/pricing`}>
 							<Button variant="outline" className="gap-2">
 								<ArrowUpRight className="h-4 w-4" />
 								Ver Planos Premium
@@ -126,7 +131,7 @@ export default async function DashboardPage() {
 								<CardTitle>Cálculos Recentes</CardTitle>
 								<CardDescription>Os seus projetos mais recentes</CardDescription>
 							</div>
-							<Link href="/calculator" className="cursor-pointer">
+							<Link href={`/${locale}/calculator`} className="cursor-pointer">
 								<Button variant="outline" size="sm">
 									Ver todos
 								</Button>

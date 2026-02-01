@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +12,8 @@ import { Label } from "@/components/ui/label";
 
 export function SignInForm() {
 	const router = useRouter();
+	const params = useParams();
+	const locale = (params?.locale as string) || "pt";
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
@@ -27,7 +29,7 @@ export function SignInForm() {
 		const { error: authError } = await authClient.signIn.email({
 			email,
 			password,
-			callbackURL: "/dashboard",
+			callbackURL: `/${locale}/dashboard`,
 		});
 
 		setIsSubmitting(false);
@@ -37,7 +39,7 @@ export function SignInForm() {
 			return;
 		}
 
-		router.push("/dashboard");
+		router.push(`/${locale}/dashboard`);
 	}
 
 	return (
@@ -57,7 +59,7 @@ export function SignInForm() {
 							<Label htmlFor="password">Palavra-passe</Label>
 							<Link
 								className="text-xs text-primary hover:underline cursor-pointer"
-								href="/forgot-password"
+								href={`/${locale}/forgot-password`}
 							>
 								Esqueceu a palavra-passe?
 							</Link>
@@ -73,7 +75,7 @@ export function SignInForm() {
 			<CardFooter>
 				<p className="text-sm text-gray-600">
 					Não tem conta?{" "}
-					<Link href="/register" className="text-primary hover:underline cursor-pointer">
+					<Link href={`/${locale}/register`} className="text-primary hover:underline cursor-pointer">
 						Criar conta
 					</Link>
 				</p>

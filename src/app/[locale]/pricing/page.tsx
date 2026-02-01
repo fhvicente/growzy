@@ -3,8 +3,15 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Check, Sparkles, Zap, Crown, ArrowRight, Star } from "lucide-react";
 import Link from "next/link";
+import { CheckoutButton } from "@/components/pricing/checkout-button";
 
-export default function PricingPage() {
+interface PricingPageProps {
+	params: Promise<{ locale: string }>;
+}
+
+export default async function PricingPage({ params }: PricingPageProps) {
+	const { locale } = await params;
+
 	const plans = [
 		{
 			name: "Grátis",
@@ -18,7 +25,7 @@ export default function PricingPage() {
 				"Suporte por email",
 			],
 			cta: "Começar grátis",
-			href: "/register",
+			href: `/${locale}/register`,
 			highlighted: false,
 			icon: Zap,
 		},
@@ -41,6 +48,7 @@ export default function PricingPage() {
 			href: "/api/subscription/checkout",
 			highlighted: true,
 			icon: Crown,
+			isCheckout: true,
 		},
 	];
 
@@ -49,24 +57,24 @@ export default function PricingPage() {
 			<div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
 				{/* Header */}
 				<div className="text-center">
-					<Badge variant="outline" className="mb-4 border-primary-200 bg-primary-50">
+					<Badge className="mb-4 bg-primary-600">
 						<Sparkles className="mr-1 h-3 w-3" />
-						Planos e Preços
+						Planos Flexíveis
 					</Badge>
 					<h1 className="text-4xl font-bold tracking-tight text-gray-900 lg:text-5xl">
 						Escolha o plano perfeito para si
 					</h1>
-					<p className="mt-4 text-lg text-muted-foreground">
-						Desbloqueie o potencial total da sua mini horta com funcionalidades avançadas
+					<p className="mt-4 text-lg text-gray-600">
+						Comece grátis e faça upgrade quando precisar de mais funcionalidades
 					</p>
 				</div>
 
 				{/* Pricing Cards */}
-				<div className="mt-16 grid gap-8 lg:grid-cols-2 lg:gap-12">
+				<div className="mt-12 grid gap-8 lg:grid-cols-2">
 					{plans.map((plan) => (
 						<Card
 							key={plan.name}
-							className={`relative border-2 transition-all ${
+							className={`relative transition-all ${
 								plan.highlighted
 									? "scale-105 border-primary-500 shadow-2xl"
 									: "border-gray-200 hover:border-primary-200 hover:shadow-lg"
@@ -123,16 +131,16 @@ export default function PricingPage() {
 							</CardContent>
 
 							<CardFooter>
-								<Link href={plan.href} className="w-full cursor-pointer">
-									<Button
-										size="lg"
-										className={`group w-full gap-2 ${plan.highlighted ? "" : "variant-outline"}`}
-										variant={plan.highlighted ? "primary" : "outline"}
-									>
-										{plan.cta}
-										<ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-									</Button>
-								</Link>
+								{plan.isCheckout ? (
+									<CheckoutButton />
+								) : (
+									<Link href={plan.href} className="w-full cursor-pointer">
+										<Button size="lg" variant="outline" className="group w-full gap-2">
+											{plan.cta}
+											<ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+										</Button>
+									</Link>
+								)}
 							</CardFooter>
 						</Card>
 					))}
@@ -197,7 +205,7 @@ export default function PricingPage() {
 						Experimente grátis e veja como podemos ajudar a sua horta a prosperar
 					</p>
 					<div className="mt-8 flex flex-col gap-4 sm:flex-row sm:justify-center">
-						<Link href="/register" className="cursor-pointer">
+						<Link href={`/${locale}/register`} className="cursor-pointer">
 							<Button
 								size="lg"
 								variant="secondary"
@@ -206,7 +214,7 @@ export default function PricingPage() {
 								Começar grátis
 							</Button>
 						</Link>
-						<Link href="/contact" className="cursor-pointer">
+						<Link href={`/${locale}/contact`} className="cursor-pointer">
 							<Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
 								Contactar-nos
 							</Button>
