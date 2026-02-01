@@ -1,11 +1,88 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-:root {
-    color-scheme: light;
+@theme {
+	--color-background: oklch(100% 0 0);
+	--color-foreground: oklch(9.84% 0.004 285.885);
+	--color-card: oklch(100% 0 0);
+	--color-card-foreground: oklch(9.84% 0.004 285.885);
+	--color-popover: oklch(100% 0 0);
+	--color-popover-foreground: oklch(9.84% 0.004 285.885);
+	--color-primary: oklch(52.18% 0.177 155.825);
+	--color-primary-foreground: oklch(98.37% 0.007 342.547);
+	--color-secondary: oklch(96.48% 0.001 286.375);
+	--color-secondary-foreground: oklch(15.35% 0.013 285.885);
+	--color-muted: oklch(96.48% 0.001 286.375);
+	--color-muted-foreground: oklch(52.36% 0.016 285.885);
+	--color-accent: oklch(96.48% 0.001 286.375);
+	--color-accent-foreground: oklch(15.35% 0.013 285.885);
+	--color-destructive: oklch(62.8% 0.257 29.234);
+	--color-destructive-foreground: oklch(98% 0 0);
+	--color-border: oklch(89.84% 0.002 286.375);
+	--color-input: oklch(89.84% 0.002 286.375);
+	--color-ring: oklch(52.18% 0.177 155.825);
+
+	--color-primary-50: #f0fdf4;
+	--color-primary-100: #dcfce7;
+	--color-primary-200: #bbf7d0;
+	--color-primary-300: #86efac;
+	--color-primary-400: #4ade80;
+	--color-primary-500: #22c55e;
+	--color-primary-600: #16a34a;
+	--color-primary-700: #15803d;
+	--color-primary-800: #166534;
+	--color-primary-900: #14532d;
+
+	--radius-lg: 0.75rem;
+	--radius-md: calc(0.75rem - 2px);
+	--radius-sm: calc(0.75rem - 4px);
 }
 
 body {
-    @apply bg-gray-50 text-gray-900;
+	background-color: var(--color-background);
+	color: var(--color-foreground);
+	font-feature-settings:
+		"rlig" 1,
+		"calt" 1;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	font-weight: 600;
+	letter-spacing: -0.025em;
+}
+
+h1 {
+	font-size: 2.25rem;
+	line-height: 2.5rem;
+}
+
+h2 {
+	font-size: 1.875rem;
+	line-height: 2.25rem;
+}
+
+h3 {
+	font-size: 1.5rem;
+	line-height: 2rem;
+}
+
+@media (min-width: 1024px) {
+	h1 {
+		font-size: 3rem;
+		line-height: 1;
+	}
+
+	h2 {
+		font-size: 2.25rem;
+		line-height: 2.5rem;
+	}
+
+	h3 {
+		font-size: 1.875rem;
+		line-height: 2.25rem;
+	}
 }
