@@ -23,7 +23,7 @@ export function Header() {
 		<header className="sticky top-0 z-50 border-b bg-white/95 backdrop-blur supports-backdrop-filter:bg-white/60">
 			<nav className="mx-auto flex max-w-7xl items-center justify-between p-4 lg:px-8">
 				{/* Logo */}
-				<Link href="/" className="flex items-center gap-2">
+				<Link href="/" className="flex items-center gap-2 cursor-pointer">
 					<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-600 text-white">
 						<Leaf className="h-6 w-6" />
 					</div>
@@ -58,7 +58,7 @@ export function Header() {
 							<Separator orientation="vertical" className="h-6" />
 							<Button variant="ghost" size="sm">
 								<LogOut className="h-4 w-4" />
-								Sair
+								Terminar sessão
 							</Button>
 						</div>
 					) : (
@@ -74,7 +74,11 @@ export function Header() {
 				</div>
 
 				{/* Mobile menu button */}
-				<button type="button" className="lg:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+				<button
+					type="button"
+					className="lg:hidden cursor-pointer"
+					onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+				>
 					{mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
 				</button>
 			</nav>
@@ -99,25 +103,33 @@ export function Header() {
 							<>
 								<Link
 									href="/profile"
-									className="flex items-center gap-3 rounded-lg px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50"
+									className="flex items-center gap-3 rounded-lg px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 cursor-pointer"
 									onClick={() => setMobileMenuOpen(false)}
 								>
 									<User className="h-5 w-5" />
 									Perfil
 								</Link>
-								<button className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50">
+								<button className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 cursor-pointer">
 									<LogOut className="h-5 w-5" />
-									Sair
+									Terminar sessão
 								</button>
 							</>
 						) : (
 							<div className="space-y-2 px-3 py-2">
-								<Link href="/login" className="block" onClick={() => setMobileMenuOpen(false)}>
+								<Link
+									href="/login"
+									className="block cursor-pointer"
+									onClick={() => setMobileMenuOpen(false)}
+								>
 									<Button variant="outline" className="w-full">
-										Entrar
+										Iniciar sessão
 									</Button>
 								</Link>
-								<Link href="/register" className="block" onClick={() => setMobileMenuOpen(false)}>
+								<Link
+									href="/register"
+									className="block cursor-pointer"
+									onClick={() => setMobileMenuOpen(false)}
+								>
 									<Button className="w-full">Criar conta</Button>
 								</Link>
 							</div>

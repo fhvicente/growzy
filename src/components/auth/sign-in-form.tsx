@@ -33,7 +33,7 @@ export function SignInForm() {
 		setIsSubmitting(false);
 
 		if (authError) {
-			setError(authError.message ?? "Falha ao entrar.");
+			setError(authError.message ?? "Falha ao iniciar sessão.");
 			return;
 		}
 
@@ -43,34 +43,37 @@ export function SignInForm() {
 	return (
 		<Card className="w-full max-w-md">
 			<CardHeader>
-				<CardTitle>Entrar</CardTitle>
-				<CardDescription>Acesse sua conta para continuar.</CardDescription>
+				<CardTitle>Iniciar sessão</CardTitle>
+				<CardDescription>Aceda à sua conta para continuar.</CardDescription>
 			</CardHeader>
 			<CardContent>
 				<form className="grid gap-4" onSubmit={onSubmit}>
 					<div className="grid gap-2">
 						<Label htmlFor="email">Email</Label>
-						<Input id="email" name="email" type="email" placeholder="voce@email.com" required />
+						<Input id="email" name="email" type="email" placeholder="seu@email.com" required />
 					</div>
 					<div className="grid gap-2">
 						<div className="flex items-center justify-between">
-							<Label htmlFor="password">Senha</Label>
-							<Link className="text-xs text-primary hover:underline" href="/forgot-password">
-								Esqueceu a senha?
+							<Label htmlFor="password">Palavra-passe</Label>
+							<Link
+								className="text-xs text-primary hover:underline cursor-pointer"
+								href="/forgot-password"
+							>
+								Esqueceu a palavra-passe?
 							</Link>
 						</div>
 						<Input id="password" name="password" type="password" required />
 					</div>
 					{error ? <p className="text-sm text-red-600">{error}</p> : null}
 					<Button type="submit" disabled={isSubmitting}>
-						{isSubmitting ? "Entrando..." : "Entrar"}
+						{isSubmitting ? "A iniciar sessão..." : "Iniciar sessão"}
 					</Button>
 				</form>
 			</CardContent>
 			<CardFooter>
 				<p className="text-sm text-gray-600">
 					Não tem conta?{" "}
-					<Link href="/register" className="text-primary hover:underline">
+					<Link href="/register" className="text-primary hover:underline cursor-pointer">
 						Criar conta
 					</Link>
 				</p>

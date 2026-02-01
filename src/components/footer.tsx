@@ -28,7 +28,7 @@ export function Footer() {
 				<div className="grid grid-cols-1 gap-8 md:grid-cols-4">
 					{/* Brand */}
 					<div className="space-y-4">
-						<Link href="/" className="flex items-center gap-2">
+						<Link href="/" className="flex items-center gap-2 cursor-pointer">
 							<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-600 text-white">
 								<Leaf className="h-6 w-6" />
 							</div>
@@ -40,7 +40,7 @@ export function Footer() {
 						<div className="flex gap-4">
 							<a
 								href="https://twitter.com"
-								className="text-muted-foreground transition-colors hover:text-primary-600"
+								className="text-muted-foreground transition-colors hover:text-primary-600 cursor-pointer"
 								target="_blank"
 								rel="noopener noreferrer"
 							>
@@ -48,7 +48,7 @@ export function Footer() {
 							</a>
 							<a
 								href="https://github.com"
-								className="text-muted-foreground transition-colors hover:text-primary-600"
+								className="text-muted-foreground transition-colors hover:text-primary-600 cursor-pointer"
 								target="_blank"
 								rel="noopener noreferrer"
 							>
@@ -56,7 +56,7 @@ export function Footer() {
 							</a>
 							<a
 								href="mailto:contact@hortafacil.com"
-								className="text-muted-foreground transition-colors hover:text-primary-600"
+								className="text-muted-foreground transition-colors hover:text-primary-600 cursor-pointer"
 							>
 								<Mail className="h-5 w-5" />
 							</a>
@@ -71,7 +71,7 @@ export function Footer() {
 								<li key={link.name}>
 									<Link
 										href={link.href}
-										className="text-sm text-muted-foreground transition-colors hover:text-primary-600"
+										className="text-sm text-muted-foreground transition-colors hover:text-primary-600 cursor-pointer"
 									>
 										{link.name}
 									</Link>
@@ -88,7 +88,7 @@ export function Footer() {
 								<li key={link.name}>
 									<Link
 										href={link.href}
-										className="text-sm text-muted-foreground transition-colors hover:text-primary-600"
+										className="text-sm text-muted-foreground transition-colors hover:text-primary-600 cursor-pointer"
 									>
 										{link.name}
 									</Link>
@@ -105,7 +105,7 @@ export function Footer() {
 								<li key={link.name}>
 									<Link
 										href={link.href}
-										className="text-sm text-muted-foreground transition-colors hover:text-primary-600"
+										className="text-sm text-muted-foreground transition-colors hover:text-primary-600 cursor-pointer"
 									>
 										{link.name}
 									</Link>

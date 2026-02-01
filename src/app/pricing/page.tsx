@@ -123,7 +123,7 @@ export default function PricingPage() {
 							</CardContent>
 
 							<CardFooter>
-								<Link href={plan.href} className="w-full">
+								<Link href={plan.href} className="w-full cursor-pointer">
 									<Button
 										size="lg"
 										className={`group w-full gap-2 ${plan.highlighted ? "" : "variant-outline"}`}
@@ -197,7 +197,7 @@ export default function PricingPage() {
 						Experimente grátis e veja como podemos ajudar a sua horta a prosperar
 					</p>
 					<div className="mt-8 flex flex-col gap-4 sm:flex-row sm:justify-center">
-						<Link href="/register">
+						<Link href="/register" className="cursor-pointer">
 							<Button
 								size="lg"
 								variant="secondary"
@@ -206,7 +206,7 @@ export default function PricingPage() {
 								Começar grátis
 							</Button>
 						</Link>
-						<Link href="/contact">
+						<Link href="/contact" className="cursor-pointer">
 							<Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
 								Contactar-nos
 							</Button>
