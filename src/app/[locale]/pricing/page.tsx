@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Check, Sparkles, Zap, Crown, ArrowRight, Star } from "lucide-react";
 import Link from "next/link";
 import { CheckoutButton } from "@/components/pricing/checkout-button";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 interface PricingPageProps {
 	params: Promise<{ locale: string }>;
@@ -11,42 +13,72 @@ interface PricingPageProps {
 
 export default async function PricingPage({ params }: PricingPageProps) {
 	const { locale } = await params;
+	const session = await auth.api.getSession({ headers: await headers() });
+	const isLoggedIn = !!session;
 
 	const plans = [
 		{
+			type: "free",
 			name: "Grátis",
 			price: "€0",
 			period: "sempre grátis",
 			description: "Perfeito para começar",
 			features: [
-				"Até 3 cálculos por mês",
+				"Até 3 hortas",
 				"Acesso à calculadora básica",
-				"Plantas básicas disponíveis",
-				"Suporte por email",
+				"20 plantas na base de dados",
+				"Sem acompanhamento",
 			],
-			cta: "Começar grátis",
-			href: `/${locale}/register`,
+			cta: isLoggedIn ? "Usar grátis" : "Começar grátis",
+			href: isLoggedIn ? `/${locale}/calculator` : `/${locale}/register`,
 			highlighted: false,
 			icon: Zap,
 		},
 		{
-			name: "Premium",
-			price: "€2.99",
-			period: "por mês",
-			description: "Para entusiastas sérios",
+			type: "standard",
+			name: "Standard",
+			price: "€4.99",
+			period: "/mês",
+			yearlyPrice: "€39",
+			description: "Ideal para horticultores regulares",
 			badge: "Mais Popular",
 			features: [
-				"Cálculos ilimitados",
+				"Hortas ilimitadas",
 				"Calculadora avançada",
-				"Todas as plantas disponíveis",
-				"Estimativas de economia personalizadas",
-				"Salvamento ilimitado de projetos",
+				"50+ plantas na base de dados",
+				"Acompanhamento de progresso",
+				"Calendário de plantação",
+				"Comparação de economias",
+				"Exportação de relatórios",
 				"Suporte prioritário",
-				"Acesso a novas funcionalidades",
 			],
-			cta: "Começar Premium",
-			href: "/api/subscription/checkout",
+			cta: "Começar Teste Grátis",
+			href: isLoggedIn ? "" : `/${locale}/register`,
 			highlighted: true,
+			icon: Sparkles,
+			isCheckout: true,
+		},
+		{
+			type: "premium",
+			name: "Premium",
+			price: "€9.99",
+			period: "/mês",
+			yearlyPrice: "€79",
+			description: "Para profissionais e entusiastas",
+			features: [
+				"Tudo em Standard",
+				"Planeamento com IA",
+				"Análise avançada de solo",
+				"Previsões de colheita",
+				"Alertas personalizados",
+				"Consultoria virtual",
+				"Base de dados completa (100+ plantas)",
+				"API access",
+				"Suporte 24/7",
+			],
+			cta: "Começar Teste Grátis",
+			href: isLoggedIn ? "" : `/${locale}/register`,
+			highlighted: false,
 			icon: Crown,
 			isCheckout: true,
 		},
@@ -70,7 +102,7 @@ export default async function PricingPage({ params }: PricingPageProps) {
 				</div>
 
 				{/* Pricing Cards */}
-				<div className="mt-12 grid gap-8 lg:grid-cols-2">
+				<div className="mt-12 grid gap-8 lg:grid-cols-3">
 					{plans.map((plan) => (
 						<Card
 							key={plan.name}
@@ -112,6 +144,11 @@ export default async function PricingPage({ params }: PricingPageProps) {
 										</span>
 										<span className="text-lg text-muted-foreground">{plan.period}</span>
 									</div>
+									{plan.yearlyPrice ? (
+										<p className="mt-1 text-sm text-muted-foreground">
+											ou {plan.yearlyPrice}/ano (poupe 34%)
+										</p>
+									) : null}
 								</div>
 							</CardHeader>
 
@@ -131,8 +168,11 @@ export default async function PricingPage({ params }: PricingPageProps) {
 							</CardContent>
 
 							<CardFooter>
-								{plan.isCheckout ? (
-									<CheckoutButton />
+								{plan.isCheckout && isLoggedIn ? (
+									<CheckoutButton
+										plan={plan.type === "standard" ? "standard" : "premium"}
+										label={plan.cta}
+									/>
 								) : (
 									<Link href={plan.href} className="w-full cursor-pointer">
 										<Button size="lg" variant="outline" className="group w-full gap-2">

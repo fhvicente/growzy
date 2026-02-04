@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Leaf, Menu, X, Home, Calculator, LayoutDashboard, CreditCard, User, LogOut } from "lucide-react";
 import { useState } from "react";
+import { useEffect } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { authClient } from "@/lib/auth-client";
@@ -15,6 +16,7 @@ export function Header() {
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 	const { data: session } = authClient.useSession();
 	const isLoggedIn = !!session;
+	const pathname = usePathname();
 
 	const navigation = [
 		{ name: "Início", href: `/${locale}`, icon: Home },
@@ -30,6 +32,20 @@ export function Header() {
 		},
 		{ name: "Planos", href: `/${locale}/pricing`, icon: CreditCard },
 	];
+	const visibleNavigation = isLoggedIn ? navigation.filter((item) => item.name !== "Início") : navigation;
+
+	const handleNavClick = () => {
+		setMobileMenuOpen(false);
+		if (typeof window !== "undefined") {
+			window.scrollTo({ top: 0, behavior: "smooth" });
+		}
+	};
+
+	useEffect(() => {
+		if (typeof window !== "undefined") {
+			window.scrollTo({ top: 0, behavior: "smooth" });
+		}
+	}, [pathname]);
 
 	return (
 		<header className="sticky top-0 z-50 border-b bg-white/95 backdrop-blur supports-backdrop-filter:bg-white/60">
@@ -44,11 +60,12 @@ export function Header() {
 
 				{/* Desktop Navigation */}
 				<div className="hidden lg:flex lg:gap-x-8">
-					{navigation.map((item) => (
+					{visibleNavigation.map((item) => (
 						<Link
 							key={item.name}
 							href={item.href}
 							className="flex items-center gap-2 text-sm font-medium text-gray-700 transition-colors hover:text-primary-600"
+							onClick={handleNavClick}
 						>
 							<item.icon className="h-4 w-4" />
 							{item.name}
@@ -99,12 +116,12 @@ export function Header() {
 			{mobileMenuOpen && (
 				<div className="lg:hidden">
 					<div className="space-y-1 border-t px-4 pb-3 pt-2">
-						{navigation.map((item) => (
+						{visibleNavigation.map((item) => (
 							<Link
 								key={item.name}
 								href={item.href}
 								className="flex items-center gap-3 rounded-lg px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-primary-600"
-								onClick={() => setMobileMenuOpen(false)}
+								onClick={handleNavClick}
 							>
 								<item.icon className="h-5 w-5" />
 								{item.name}

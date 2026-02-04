@@ -1,6 +1,9 @@
 import { SignInForm } from "@/components/auth/sign-in-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
 interface LoginPageProps {
 	params: Promise<{ locale: string }>;
@@ -8,6 +11,10 @@ interface LoginPageProps {
 
 export default async function LoginPage({ params }: LoginPageProps) {
 	const { locale } = await params;
+	const session = await auth.api.getSession({ headers: await headers() });
+	if (session) {
+		redirect(`/${locale}/dashboard`);
+	}
 
 	return (
 		<div className="flex min-h-[80vh] items-center justify-center px-4 py-12">

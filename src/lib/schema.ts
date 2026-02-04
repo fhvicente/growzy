@@ -8,6 +8,8 @@ export const users = pgTable("users", {
 	emailVerified: boolean("email_verified").default(false).notNull(),
 	image: text("image"),
 	stripeId: varchar("stripe_id", { length: 255 }),
+	subscriptionPlan: varchar("subscription_plan", { length: 50 }).default("free").notNull(),
+	subscriptionStatus: varchar("subscription_status", { length: 50 }).default("inactive"),
 	rememberToken: varchar("remember_token", { length: 100 }),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 	updatedAt: timestamp("updated_at")
@@ -131,6 +133,7 @@ export const subscriptions = pgTable("subscriptions", {
 	stripeId: varchar("stripe_id", { length: 255 }).notNull().unique(),
 	stripeStatus: varchar("stripe_status", { length: 50 }).notNull(),
 	stripePrice: varchar("stripe_price", { length: 50 }),
+	plan: varchar("plan", { length: 50 }).default("standard").notNull(),
 	quantity: integer("quantity").default(1).notNull(),
 	trialEndsAt: timestamp("trial_ends_at", { mode: "date" }),
 	endsAt: timestamp("ends_at", { mode: "date" }),

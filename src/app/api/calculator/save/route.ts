@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { db } from "@/lib/db";
 import { calculations } from "@/lib/schema";
 import { getSessionUser } from "@/lib/session";
+import { checkPlantLimit, planLimitResponse } from "@/lib/plan-limits";
 
 export async function POST(request: NextRequest) {
 	const user = await getSessionUser(request);
@@ -17,6 +18,12 @@ export async function POST(request: NextRequest) {
 
 	if (!plants.length || !products.length) {
 		return NextResponse.json({ ok: false, error: "Invalid data" }, { status: 400 });
+	}
+
+	// Verificar limite de plantas do plano
+	const limitCheck = await checkPlantLimit(request, plants.length);
+	if (!limitCheck.ok) {
+		return planLimitResponse(limitCheck);
 	}
 
 	const totalPlantsCost = plants.reduce((sum: number, plant: any) => sum + Number(plant.total || 0), 0);
