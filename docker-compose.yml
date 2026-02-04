@@ -12,7 +12,16 @@ services:
             - postgres_data:/var/lib/postgresql/data
 
     web:
-        build: .
+        build:
+            context: .
+            args:
+                BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+                BETTER_AUTH_URL: ${BETTER_AUTH_URL}
+                BETTER_AUTH_BASE_URL: ${BETTER_AUTH_BASE_URL}
+                STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+                STRIPE_STANDARD_PRICE_ID: ${STRIPE_STANDARD_PRICE_ID}
+                STRIPE_PREMIUM_PRICE_ID: ${STRIPE_PREMIUM_PRICE_ID}
+                NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME}
         container_name: mini-horta-next
         environment:
             DATABASE_URL: ${DATABASE_URL}
@@ -22,7 +31,6 @@ services:
             STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
             STRIPE_STANDARD_PRICE_ID: ${STRIPE_STANDARD_PRICE_ID}
             STRIPE_PREMIUM_PRICE_ID: ${STRIPE_PREMIUM_PRICE_ID}
-            NODE_ENV: ${NODE_ENV}
             NEXT_PUBLIC_APP_NAME: Horta Fácil
         ports:
             - "3000:3000"
