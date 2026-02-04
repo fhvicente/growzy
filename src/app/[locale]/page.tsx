@@ -7,6 +7,9 @@ import { TestimonialsSection } from "@/components/landing/testimonials-section";
 import { PricingSection } from "@/components/landing/pricing-section";
 import { FAQSection } from "@/components/landing/faq-section";
 import { CTASection } from "@/components/landing/cta-section";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { Header } from "@/components/header";
 
 interface LocalePageProps {
 	params: Promise<{ locale: string }>;
@@ -14,10 +17,11 @@ interface LocalePageProps {
 
 export default async function LocalePage({ params }: LocalePageProps) {
 	const { locale } = await params;
+	const session = await auth.api.getSession({ headers: await headers() });
 
 	return (
 		<>
-			<LandingNav locale={locale} />
+			{session ? <Header /> : <LandingNav locale={locale} />}
 			<div className="flex flex-col">
 				<HeroSection locale={locale} />
 				<ProblemSection />
