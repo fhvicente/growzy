@@ -18,8 +18,8 @@ services:
             DATABASE_URL: postgresql://postgres:postgres@db:5432/mini_horta
             NEXT_PUBLIC_APP_NAME: Horta Fácil
             BETTER_AUTH_SECRET: change_me
-            BETTER_AUTH_URL: http://localhost:3000
-            BETTER_AUTH_BASE_URL: http://localhost:3000
+            BETTER_AUTH_URL: http://72.60.35.130:3000
+            BETTER_AUTH_BASE_URL: http://72.60.35.130:3000
         ports:
             - "3000:3000"
         depends_on:
