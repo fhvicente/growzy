@@ -14,10 +14,15 @@ services:
     web:
         build: .
         container_name: mini-horta-next
-        env_file:
-            - .env
         environment:
-            DATABASE_URL: postgresql://postgres:postgres@db:5432/mini_horta
+            DATABASE_URL: ${DATABASE_URL}
+            BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+            BETTER_AUTH_URL: ${BETTER_AUTH_URL}
+            BETTER_AUTH_BASE_URL: ${BETTER_AUTH_BASE_URL}
+            STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+            STRIPE_STANDARD_PRICE_ID: ${STRIPE_STANDARD_PRICE_ID}
+            STRIPE_PREMIUM_PRICE_ID: ${STRIPE_PREMIUM_PRICE_ID}
+            NODE_ENV: ${NODE_ENV}
             NEXT_PUBLIC_APP_NAME: Horta Fácil
         ports:
             - "3000:3000"
