@@ -6,7 +6,7 @@ Date: 2026-01-31
 
 ### Goals
 
-- Rebuild Mini Horta on Next.js App Router with a clean, modern UI.
+- Rebuild Growzy on Next.js App Router with a clean, modern UI.
 - Preserve existing features, flows, and data.
 - Replace Laravel auth with Better Auth.
 - Maintain Stripe subscription behavior and webhook handling.

@@ -1,10 +1,10 @@
-# Phase 1 — Discovery & Feature Inventory (Mini Horta)
+# Phase 1 — Discovery & Feature Inventory (Growzy)
 
 Date: 2026-01-31
 
 ## 1) High-Level Overview
 
-Mini Horta (Horta Fácil) is a Laravel web app that helps users estimate the cost of building a small urban garden. The app includes a paid subscription (Stripe) that gates access to the calculator and saved results.
+Growzy (originally Mini Horta / Horta Fácil) is a Laravel web app that helps users estimate the cost of building a small urban garden. The app includes a paid subscription (Stripe) that gates access to the calculator and saved results.
 
 Key source references:
 

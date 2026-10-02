@@ -3,22 +3,23 @@ import { cn } from "@/lib/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 
 const buttonVariants = cva(
-	"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 cursor-pointer",
+	"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-semibold transition-[background-color,color,transform] duration-200 ease-(--ease-out-expo) active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50 cursor-pointer",
 	{
 		variants: {
 			variant: {
-				primary: "bg-primary text-primary-foreground hover:bg-primary/90",
-				secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-				outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
-				ghost: "bg-gray-100 hover:bg-gray-200 hover:text-accent-foreground",
+				primary: "bg-moss text-paper hover:bg-moss-deep",
+				tomato: "bg-tomato text-ink hover:bg-tomato-deep",
+				secondary: "bg-paper-2 text-ink hover:bg-line",
+				outline: "border-[1.5px] border-ink/80 bg-transparent text-ink hover:bg-ink hover:text-paper",
+				ghost: "bg-transparent text-ink hover:bg-paper-2",
 				link: "text-primary underline-offset-4 hover:underline",
 				destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
 			},
 			size: {
-				default: "h-10 px-4 py-2",
-				sm: "h-9 rounded-md px-3",
-				lg: "h-11 rounded-md px-8",
-				icon: "h-10 w-10",
+				default: "h-11 px-5",
+				sm: "h-9 px-4",
+				lg: "h-14 px-7 text-base",
+				icon: "h-11 w-11",
 			},
 		},
 		defaultVariants: {

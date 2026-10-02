@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Leaf, Menu, X, Home, Calculator, LayoutDashboard, CreditCard, User, LogOut } from "lucide-react";
+import { Menu, X, Home, Calculator, LayoutDashboard, CreditCard, User, LogOut } from "lucide-react";
 import { useState } from "react";
 import { useEffect } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { authClient } from "@/lib/auth-client";
+import { Logo } from "@/components/logo";
 
 export function Header() {
 	const params = useParams();
@@ -48,23 +49,21 @@ export function Header() {
 	}, [pathname]);
 
 	return (
-		<header className="sticky top-0 z-50 border-b bg-white/95 backdrop-blur supports-backdrop-filter:bg-white/60">
-			<nav className="mx-auto flex max-w-7xl items-center justify-between p-4 lg:px-8">
+		<header className="sticky top-0 z-50 border-b border-line bg-paper/90 backdrop-blur-md">
+			<nav className="mx-auto flex h-18 max-w-7xl items-center justify-between px-4 lg:px-8">
 				{/* Logo */}
-				<Link href="/" className="flex items-center gap-2 cursor-pointer">
-					<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-600 text-white">
-						<Leaf className="h-6 w-6" />
-					</div>
-					<span className="text-xl font-bold text-gray-900">Horta Fácil</span>
+				<Link href={`/${locale}`} aria-label="Growzy, início" className="text-ink">
+					<Logo />
 				</Link>
 
 				{/* Desktop Navigation */}
-				<div className="hidden lg:flex lg:gap-x-8">
+				<div className="hidden lg:flex lg:gap-x-1">
 					{visibleNavigation.map((item) => (
 						<Link
 							key={item.name}
 							href={item.href}
-							className="flex items-center gap-2 text-sm font-medium text-gray-700 transition-colors hover:text-primary-600"
+							aria-current={pathname === item.href ? "page" : undefined}
+							className="flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-ink-soft transition-colors hover:bg-paper-2 hover:text-ink aria-[current=page]:bg-moss aria-[current=page]:text-paper"
 							onClick={handleNavClick}
 						>
 							<item.icon className="h-4 w-4" />
@@ -80,7 +79,7 @@ export function Header() {
 							<Link href={`/${locale}/profile`}>
 								<Button variant="ghost" size="icon">
 									<Avatar className="h-8 w-8">
-										<AvatarFallback className="bg-primary-100 text-primary-700">U</AvatarFallback>
+										<AvatarFallback className="bg-sprout font-bold text-ink">U</AvatarFallback>
 									</Avatar>
 								</Button>
 							</Link>

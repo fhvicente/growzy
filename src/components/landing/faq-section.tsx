@@ -1,101 +1,73 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown } from "lucide-react";
-import { Reveal } from "./reveal";
+import { Plus } from "lucide-react";
 
 const faqs = [
 	{
-		question: "A Mini Horta funciona para hortas em varanda?",
-		answer: "Sim! A calculadora adapta-se a qualquer espaço, desde varandas pequenas a quintais grandes. Pode definir o espaço disponível e receber sugestões adequadas.",
+		question: "Funciona para hortas em varanda?",
+		answer: "Sim. A calculadora serve para qualquer espaço, de um parapeito a um quintal. Tu escolhes as plantas e as quantidades.",
 	},
 	{
-		question: "Os preços das plantas são atualizados?",
-		answer: "Os preços são baseados em médias do mercado português e são atualizados regularmente. Pode também personalizar preços se encontrar valores diferentes.",
-	},
-	{
-		question: "Posso usar sem internet?",
-		answer: "A aplicação funciona offline para consultar os seus dados. Precisa de internet para sincronizar entre dispositivos e aceder à base de dados completa.",
+		question: "De onde vêm os preços das plantas?",
+		answer: "São médias do mercado português e são revistos com regularidade. Se no teu viveiro o preço for outro, a conta continua a dar-te uma boa ideia.",
 	},
 	{
 		question: "Como cancelo a subscrição?",
-		answer: "Pode cancelar a qualquer momento nas definições da conta. Não há períodos de fidelização.",
+		answer: "Nas definições da conta, a qualquer momento. Não há fidelização.",
 	},
 	{
-		question: "Há garantia de devolução?",
-		answer: "Sim! Teste grátis durante 14 dias. Se não ficar satisfeito, devolvemos 100% do valor.",
+		question: "As plantas são as que se cultivam cá?",
+		answer: "Sim. A base foca-se em plantas comuns em Portugal e adequadas ao nosso clima.",
 	},
 	{
-		question: "A base de dados inclui plantas portuguesas?",
-		answer: "Sim! Focamo-nos em plantas comuns em Portugal e adequadas ao clima português.",
-	},
-	{
-		question: "Posso exportar os meus dados?",
-		answer: "Sim! Utilizadores Pro podem exportar relatórios em PDF e Excel.",
-	},
-	{
-		question: "Há aplicação móvel?",
-		answer: "Atualmente é uma aplicação web responsiva que funciona perfeitamente em qualquer dispositivo.",
+		question: "Há aplicação para telemóvel?",
+		answer: "A Growzy é uma aplicação web pensada para o telemóvel. Abre no browser e funciona como uma app.",
 	},
 ];
 
 export function FAQSection() {
-	const [openIndex, setOpenIndex] = useState<number | null>(null);
-
-	const toggleFAQ = (index: number) => {
-		setOpenIndex(openIndex === index ? null : index);
-	};
+	const [openIndex, setOpenIndex] = useState<number | null>(0);
 
 	return (
-		<section id="faq" className="bg-gray-50 py-20 lg:py-24">
-			<div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-				{/* Section Header */}
-				<Reveal direction="up">
-					<div className="text-center">
-						<p className="mb-4 text-sm font-semibold uppercase tracking-wide text-primary-600">FAQ</p>
-						<h2 className="mb-12 text-4xl font-bold tracking-tight text-gray-900 lg:mb-16 lg:text-5xl">
-							Perguntas Frequentes
-						</h2>
-					</div>
-				</Reveal>
+		<section id="faq" className="bg-paper-2 py-24 lg:py-40">
+			<div className="mx-auto grid max-w-[88rem] gap-12 px-4 sm:px-8 lg:grid-cols-12">
+				<h2 data-reveal="lines" className="display text-[clamp(2.75rem,6vw,5.5rem)] text-ink lg:col-span-4">
+					Perguntas que nos fazem.
+				</h2>
 
-				{/* FAQ Accordion */}
-				<div className="space-y-4">
-					{faqs.map((faq, index) => (
-						<Reveal key={index} delay={index * 50} direction="up">
-							<div
-								key={index}
-								className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md"
-							>
-								{/* Question */}
+				<div className="lg:col-span-7 lg:col-start-6">
+					{faqs.map((faq, index) => {
+						const open = openIndex === index;
+						return (
+							<div key={faq.question} className="border-t border-ink/15 last:border-b">
 								<button
-									onClick={() => toggleFAQ(index)}
-									className="flex w-full items-center justify-between gap-4 p-6 text-left transition-colors hover:bg-gray-50"
-									aria-expanded={openIndex === index}
+									type="button"
+									onClick={() => setOpenIndex(open ? null : index)}
+									className="group flex w-full cursor-pointer items-center justify-between gap-6 py-7 text-left"
+									aria-expanded={open}
 								>
-									<span className="text-base font-semibold text-gray-900 sm:text-lg">
+									<span className="font-display text-xl font-bold tracking-tight text-ink sm:text-2xl">
 										{faq.question}
 									</span>
-									<ChevronDown
-										className={`h-5 w-5 shrink-0 text-muted-foreground transition-transform duration-200 ${
-											openIndex === index ? "rotate-180" : ""
-										}`}
-									/>
+									<span
+										className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-ink/20 transition-[background-color,color,rotate] duration-300 ease-(--ease-out-expo) ${open ? "rotate-45 bg-ink text-paper" : "group-hover:bg-ink/5"}`}
+									>
+										<Plus className="h-5 w-5" />
+									</span>
 								</button>
-
-								{/* Answer */}
 								<div
-									className={`overflow-hidden transition-all duration-200 ${
-										openIndex === index ? "max-h-96" : "max-h-0"
-									}`}
+									className={`grid transition-[grid-template-rows] duration-500 ease-(--ease-out-expo) ${open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
 								>
-									<div className="border-t border-gray-100 px-6 pb-6 pt-4">
-										<p className="text-muted-foreground leading-relaxed">{faq.answer}</p>
+									<div className="overflow-hidden">
+										<p className="max-w-[60ch] pb-8 text-lg leading-relaxed text-ink-soft">
+											{faq.answer}
+										</p>
 									</div>
 								</div>
 							</div>
-						</Reveal>
-					))}
+						);
+					})}
 				</div>
 			</div>
 		</section>

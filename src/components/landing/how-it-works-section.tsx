@@ -1,66 +1,74 @@
-import { Reveal, StaggerReveal } from "./reveal";
-
 const steps = [
 	{
-		number: "1",
-		title: "Escolha as Suas Plantas",
-		description:
-			"Selecione as plantas que quer cultivar da nossa base de dados. Veja preços e características de cada uma.",
+		title: "Escolhe as plantas",
+		description: "Procura na base de plantas e vê o preço de cada uma antes de decidir.",
 	},
 	{
-		number: "2",
-		title: "Calcule os Custos",
-		description:
-			"A calculadora mostra automaticamente o investimento total: plantas, terra, vasos, fertilizantes e ferramentas.",
+		title: "Ajusta as quantidades",
+		description: "Diz quantas queres. A Growzy soma tudo e mostra o investimento total.",
 	},
 	{
-		number: "3",
-		title: "Comece a Cultivar",
-		description:
-			"Siga o plano personalizado, acompanhe o progresso e registe as colheitas para ver as suas economias.",
+		title: "Guarda e planta",
+		description: "Fica com a lista para levar ao viveiro e o cálculo guardado para a próxima época.",
 	},
 ];
 
+function Leaf({ flip }: { flip?: boolean }) {
+	return (
+		<svg
+			viewBox="0 0 48 32"
+			aria-hidden="true"
+			data-leaf="50% 100%"
+			className={`absolute left-0 top-0 h-8 w-12 ${flip ? "lg:left-auto lg:right-0 lg:-scale-x-100" : ""}`}
+		>
+			<path d="M2 30C6 12 22 2 46 2 42 20 26 30 2 30Z" fill="var(--color-sprout)" />
+		</svg>
+	);
+}
+
 export function HowItWorksSection() {
 	return (
-		<section id="how-it-works" className="bg-gray-50 py-20 lg:py-24">
-			<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-				{/* Section Header */}
-				<Reveal direction="up">
-					<div className="text-center">
-						<p className="mb-4 text-sm font-semibold uppercase tracking-wide text-primary-600">
-							Como Funciona
-						</p>
-						<h2 className="mb-12 text-4xl font-bold tracking-tight text-gray-900 lg:mb-16 lg:text-5xl">
-							Comece em 3 Passos Simples
-						</h2>
+		<section id="how-it-works" className="overflow-hidden bg-moss py-24 text-paper lg:py-40">
+			<div className="mx-auto max-w-[88rem] px-4 sm:px-8">
+				<div className="mb-20 grid gap-8 lg:mb-28 lg:grid-cols-12">
+					<p className="text-sm font-semibold text-sprout lg:col-span-3">Como funciona</p>
+					<h2 data-reveal="lines" className="display text-[clamp(2.75rem,6vw,5.5rem)] lg:col-span-9">
+						Do vaso vazio à lista de compras em três passos.
+					</h2>
+				</div>
+
+				<div className="relative">
+					{/* stem */}
+					<div className="absolute bottom-0 left-6 top-0 w-[3px] rounded-full bg-paper/10 lg:left-1/2 lg:-translate-x-1/2">
+						<div data-grow className="h-full w-full rounded-full bg-sprout" />
 					</div>
-				</Reveal>
 
-				{/* Steps */}
-				<div className="relative mx-auto grid max-w-5xl gap-8 sm:grid-cols-2 lg:grid-cols-3">
-					{/* Connector line (desktop only) */}
-					<div className="absolute left-0 right-0 top-16 hidden h-0.5 bg-linear-to-r from-primary-200 via-primary-300 to-primary-200 lg:block" />
-
-					<StaggerReveal staggerDelay={200} direction="up">
-						{steps.map((step, index) => (
-							<div
-								key={index}
-								className="relative rounded-xl bg-white p-8 text-center shadow-sm transition-all hover:-translate-y-1 hover:shadow-md"
-							>
-								{/* Step Number Circle */}
-								<div className="relative z-10 mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary-600 text-3xl font-bold text-white shadow-lg">
-									{step.number}
-								</div>
-
-								{/* Title */}
-								<h3 className="mb-3 text-xl font-semibold text-gray-900">{step.title}</h3>
-
-								{/* Description */}
-								<p className="text-muted-foreground leading-relaxed">{step.description}</p>
-							</div>
-						))}
-					</StaggerReveal>
+					<ol className="space-y-24 lg:space-y-40">
+						{steps.map((step, i) => {
+							const right = i % 2 === 1;
+							return (
+								<li key={step.title} className="relative grid pl-16 lg:grid-cols-2 lg:pl-0">
+									<div className="absolute left-6 top-0 lg:left-1/2">
+										<Leaf flip={right} />
+									</div>
+									<div
+										data-reveal="up"
+										className={right ? "lg:col-start-2 lg:pl-20" : "lg:pr-20 lg:text-right"}
+									>
+										<span className="font-display text-[clamp(4rem,9vw,8rem)] font-extrabold leading-none tracking-tighter text-sprout tabular-nums">
+											{i + 1}
+										</span>
+										<h3 className="mt-4 text-3xl sm:text-4xl">{step.title}</h3>
+										<p
+											className={`mt-4 max-w-[36ch] text-lg leading-relaxed text-paper/75 ${right ? "" : "lg:ml-auto"}`}
+										>
+											{step.description}
+										</p>
+									</div>
+								</li>
+							);
+						})}
+					</ol>
 				</div>
 			</div>
 		</section>

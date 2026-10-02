@@ -1,4 +1,4 @@
-# Mini Horta Landing Page Design Brief
+# Growzy Landing Page Design Brief
 
 ## Web Landing Page for Garden Planning & Cost Calculator App
 
@@ -12,7 +12,7 @@ This landing page MUST follow the design system established in the application. 
 
 ## Project Overview
 
-**Product:** Mini Horta - Garden planning and cost calculator for home gardeners
+**Product:** Growzy - Garden planning and cost calculator for home gardeners
 **Objective:** Convert visitors into registered users and premium subscribers
 **Target Audience:** Home gardeners, urban farmers, sustainability enthusiasts, food self-sufficiency advocates
 **Primary CTA:** Start using calculator / Start free trial
@@ -101,7 +101,7 @@ This landing page MUST follow the design system established in the application. 
 
 **Logo (Left):**
 
-- **Logo + Text:** "Mini Horta"
+- **Logo + Text:** "Growzy"
 - **Font size:** 24px
 - **Font weight:** 700
 - **Color:** Nearly black
@@ -153,13 +153,13 @@ This landing page MUST follow the design system established in the application. 
 
 **Headline (h1):**
 
-- **Text:** "Planeie a sua Mini Horta com precisão"
+- **Text:** "Planeie a sua Growzy com precisão"
 - **Font size:** 60px (desktop) / 36px (mobile)
 - **Font weight:** 700
 - **Line height:** 1.1
 - **Letter spacing:** -0.025em
 - **Color:** Foreground
-- **Gradient accent:** "Mini Horta" in gradient (primary-600 to primary-800)
+- **Gradient accent:** "Growzy" in gradient (primary-600 to primary-800)
 - **Max width:** 600px
 - **Margin bottom:** 24px
 
@@ -257,7 +257,7 @@ This landing page MUST follow the design system established in the application. 
 **Option 3: Before/After Comparison**
 
 - **Left:** Empty space or traditional paper planning
-- **Right:** Mini Horta app interface showing planned garden
+- **Right:** Growzy app interface showing planned garden
 
 **Decorative Elements:**
 
@@ -695,7 +695,7 @@ This landing page MUST follow the design system established in the application. 
 
 **Example Testimonials (Portuguese):**
 
-1. "Com a Mini Horta consegui planear a minha varanda toda e já poupei mais de 200€ em alimentos frescos. Recomendo!" - Maria Silva, Lisboa
+1. "Com a Growzy consegui planear a minha varanda toda e já poupei mais de 200€ em alimentos frescos. Recomendo!" - Maria Silva, Lisboa
 
 2. "Finalmente sei quanto vou gastar antes de começar. A calculadora é muito precisa e ajudou-me a fazer escolhas melhores." - João Santos, Porto
 
@@ -898,7 +898,7 @@ This landing page MUST follow the design system established in the application. 
 
 **Example FAQs (Portuguese):**
 
-1. **Q:** "A Mini Horta funciona para hortas em varanda?"
+1. **Q:** "A Growzy funciona para hortas em varanda?"
    **A:** "Sim! A calculadora adapta-se a qualquer espaço, desde varandas pequenas a quintais grandes. Pode definir o espaço disponível e receber sugestões adequadas."
 
 2. **Q:** "Os preços das plantas são atualizados?"
@@ -1008,9 +1008,9 @@ This landing page MUST follow the design system established in the application. 
 
 **Column 1: Brand**
 
-- **Logo:** Mini Horta logo
+- **Logo:** Growzy logo
 - **Icon:** Leaf icon (32px, white/primary-400)
-- **Text:** Mini Horta
+- **Text:** Growzy
 - **Size:** 24px
 - **Font weight:** 700
 - **Color:** White
@@ -1091,7 +1091,7 @@ This landing page MUST follow the design system established in the application. 
 
 **Copyright:**
 
-- **Text:** "© 2026 Mini Horta. Todos os direitos reservados."
+- **Text:** "© 2026 Growzy. Todos os direitos reservados."
 - **Font size:** 14px
 - **Color:** rgba(255, 255, 255, 0.5)
 
@@ -1200,7 +1200,7 @@ This landing page MUST follow the design system established in the application. 
 
 ### Meta Tags (Portuguese)
 
-- **Title:** "Mini Horta - Calculadora e Planeador de Hortas Caseiras"
+- **Title:** "Growzy - Calculadora e Planeador de Hortas Caseiras"
 - **Description:** "Calcule custos, planeie a sua horta caseira e acompanhe economias. Ferramenta completa para horticultores urbanos em Portugal. Teste grátis 14 dias."
 - **Keywords:** calculadora horta, planear horta, horta caseira, agricultura urbana, horta varanda, cultivar em casa, poupar alimentos
 
@@ -1415,7 +1415,7 @@ npm install framer-motion
 
 ## Brand Assets Needed
 
-- **Logo:** SVG with leaf icon + "Mini Horta" text
+- **Logo:** SVG with leaf icon + "Growzy" text
 - **Favicon:** 32x32, 16x16 (leaf icon)
 - **OG Image:** 1200x630 for social sharing
 - **App Screenshots:**
@@ -1514,7 +1514,7 @@ npm install framer-motion
 
 ---
 
-This landing page design follows the established Mini Horta design system while optimizing for conversion and user engagement. The layout is clean, nature-inspired, and trust-building, with clear CTAs and social proof throughout. All content is in Portuguese for the Portuguese market.
+This landing page design follows the established Growzy design system while optimizing for conversion and user engagement. The layout is clean, nature-inspired, and trust-building, with clear CTAs and social proof throughout. All content is in Portuguese for the Portuguese market.
 
 **Key Differentiators:**
 
