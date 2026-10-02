@@ -1,4 +1,4 @@
-# Mini Horta (Next.js)
+# Growzy (Next.js)
 
 ## Quick start
 

@@ -1,13 +1,13 @@
 services:
     db:
         image: postgres:16
-        container_name: mini-horta-postgres
+        container_name: growzy-postgres
         environment:
             POSTGRES_USER: postgres
             POSTGRES_PASSWORD: postgres
-            POSTGRES_DB: mini_horta
+            POSTGRES_DB: growzy
         ports:
-            - "5432:5432"
+            - "5433:5432"
         volumes:
             - postgres_data:/var/lib/postgresql/data
 
@@ -22,7 +22,7 @@ services:
                 STRIPE_STANDARD_PRICE_ID: ${STRIPE_STANDARD_PRICE_ID}
                 STRIPE_PREMIUM_PRICE_ID: ${STRIPE_PREMIUM_PRICE_ID}
                 NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME}
-        container_name: mini-horta-next
+        container_name: growzy-next
         environment:
             DATABASE_URL: ${DATABASE_URL}
             BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
@@ -31,7 +31,7 @@ services:
             STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
             STRIPE_STANDARD_PRICE_ID: ${STRIPE_STANDARD_PRICE_ID}
             STRIPE_PREMIUM_PRICE_ID: ${STRIPE_PREMIUM_PRICE_ID}
-            NEXT_PUBLIC_APP_NAME: Horta Fácil
+            NEXT_PUBLIC_APP_NAME: Growzy
         ports:
             - "3000:3000"
         depends_on:

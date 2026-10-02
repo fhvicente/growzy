@@ -1,63 +1,52 @@
-import { Calculator, Calendar, TrendingDown } from "lucide-react";
-import { Reveal, StaggerReveal } from "./reveal";
-
 const painPoints = [
 	{
-		icon: Calculator,
-		title: "Custos Imprevisíveis",
+		title: "A conta chega no fim",
 		description:
-			"Difícil calcular o investimento total antes de começar. Gastos com plantas, terra, fertilizantes e ferramentas podem surpreender.",
+			"Vasos, terra, sementes, adubo. Somado à caixa do viveiro, o valor raramente é o que tinhas na cabeça.",
 	},
 	{
-		icon: Calendar,
-		title: "Planeamento Confuso",
+		title: "Não sabes o que cabe",
 		description:
-			"Quando plantar cada cultura? Quanto espaço preciso? Quantas plantas cabem na minha varanda? Demasiadas dúvidas.",
+			"Quantos tomateiros aguenta uma varanda de 2 m²? Compra-se a mais, ou planta-se tudo junto e nada cresce.",
 	},
 	{
-		icon: TrendingDown,
-		title: "Sem Controlo de Gastos",
-		description:
-			"Difícil acompanhar despesas ao longo do tempo e comparar com o preço dos alimentos no supermercado.",
+		title: "Perdes o fio aos gastos",
+		description: "Uma compra aqui, outra ali. Ao fim da época ninguém sabe se a horta saiu cara ou barata.",
 	},
 ];
 
 export function ProblemSection() {
 	return (
-		<section id="problem" className="bg-gray-50 py-20 lg:py-24">
-			<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-				{/* Section Header */}
-				<Reveal direction="up">
-					<div className="text-center">
-						<p className="mb-4 text-sm font-semibold uppercase tracking-wide text-primary-600">
-							O Problema
-						</p>
-						<h2 className="mx-auto mb-12 max-w-3xl text-4xl font-bold tracking-tight text-gray-900 lg:mb-16 lg:text-5xl">
-							Planear Uma Horta Não Devia Ser Complicado
+		<section id="problem" className="bg-paper py-24 lg:py-40">
+			<div className="mx-auto grid max-w-[88rem] gap-14 px-4 sm:px-8 lg:grid-cols-12 lg:gap-8">
+				<div className="lg:col-span-5">
+					<div className="lg:sticky lg:top-32">
+						<p className="mb-6 text-sm font-semibold text-tomato-deep">Antes da Growzy</p>
+						<h2 data-reveal="lines" className="display text-[clamp(2.75rem,6vw,5.5rem)] text-ink">
+							Começar uma horta é fácil. Acertar nas contas, nem tanto.
 						</h2>
 					</div>
-				</Reveal>
-
-				{/* Pain Point Cards */}
-				<div className="mx-auto grid max-w-5xl gap-6 sm:grid-cols-2 lg:grid-cols-3">
-					<StaggerReveal staggerDelay={150} direction="up">
-						{painPoints.map((point, index) => {
-							const Icon = point.icon;
-							return (
-								<div
-									key={index}
-									className="group rounded-xl bg-white p-8 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md"
-								>
-									<div className="mb-5 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-red-50">
-										<Icon className="h-7 w-7 text-red-500" />
-									</div>
-									<h3 className="mb-3 text-lg font-semibold text-gray-900">{point.title}</h3>
-									<p className="text-muted-foreground leading-relaxed">{point.description}</p>
-								</div>
-							);
-						})}
-					</StaggerReveal>
 				</div>
+
+				<ol className="lg:col-span-6 lg:col-start-7">
+					{painPoints.map((point, i) => (
+						<li
+							key={point.title}
+							data-reveal="up"
+							className="grid grid-cols-[4.5rem_1fr] gap-x-4 border-t border-ink/15 py-10 sm:grid-cols-[7rem_1fr] lg:py-14"
+						>
+							<span className="font-display text-5xl font-extrabold tracking-tighter text-moss/25 tabular-nums sm:text-7xl">
+								{String(i + 1).padStart(2, "0")}
+							</span>
+							<div>
+								<h3 className="mb-3 text-2xl text-ink sm:text-3xl">{point.title}</h3>
+								<p className="max-w-[46ch] text-lg leading-relaxed text-ink-soft">
+									{point.description}
+								</p>
+							</div>
+						</li>
+					))}
+				</ol>
 			</div>
 		</section>
 	);

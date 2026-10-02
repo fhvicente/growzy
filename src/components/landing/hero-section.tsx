@@ -1,114 +1,132 @@
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Sparkles, ArrowRight, CheckCircle2, Calculator, TrendingDown } from "lucide-react";
 
 interface HeroSectionProps {
 	locale: string;
 }
 
+const receipt = [
+	{ qty: 5, name: "Tomate cherry", price: 12.5 },
+	{ qty: 3, name: "Alface", price: 4.5 },
+	{ qty: 2, name: "Manjericão", price: 3.6 },
+];
+const total = receipt.reduce((s, r) => s + r.price, 0);
+
+const plants = [
+	"manjericão",
+	"tomate cherry",
+	"alface",
+	"hortelã",
+	"pimento",
+	"salsa",
+	"morango",
+	"coentros",
+	"rúcula",
+];
+
+const eur = (n: number) => n.toLocaleString("pt-PT", { minimumFractionDigits: 2 });
+
 export function HeroSection({ locale }: HeroSectionProps) {
 	return (
-		<section
-			id="hero"
-			className="relative overflow-hidden bg-linear-to-br from-primary-50 via-white to-primary-100 pb-20 pt-32 lg:pb-28 lg:pt-40"
-		>
-			{/* Background decoration */}
-			<div className="absolute inset-0 -z-10 bg-[radial-gradient(45rem_50rem_at_top,var(--color-primary-100),transparent)]" />
+		<section id="hero" className="relative overflow-hidden bg-moss text-paper">
+			<div className="mx-auto grid max-w-[88rem] gap-12 px-4 pb-16 pt-32 sm:px-8 lg:min-h-[100svh] lg:grid-cols-12 lg:items-end lg:gap-8 lg:pb-24 lg:pt-36">
+				<div className="lg:col-span-7">
+					<p data-reveal="up" className="mb-8 text-sm font-medium text-sprout">
+						Calculadora de hortas · feita em Portugal
+					</p>
+					<h1 data-reveal="lines" className="display text-[clamp(3.5rem,11vw,10rem)] text-paper">
+						Cultiva sem <span className="text-sprout">adivinhar.</span>
+					</h1>
+					<p
+						data-reveal="up"
+						data-delay="0.35"
+						className="mt-8 max-w-[34ch] text-lg leading-relaxed text-paper/80 sm:text-xl"
+					>
+						Escolhe as plantas, diz quantas queres e a Growzy mostra quanto vais gastar antes de saíres para
+						o viveiro.
+					</p>
+					<div
+						data-reveal="up"
+						data-delay="0.5"
+						className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-4"
+					>
+						<Link href={`/${locale}/calculator`}>
+							<Button variant="tomato" size="lg" className="group">
+								Calcular a minha horta
+								<ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
+							</Button>
+						</Link>
+						<Link
+							href={`/${locale}/pricing`}
+							className="text-base font-semibold text-paper underline decoration-paper/30 underline-offset-[6px] transition-colors hover:decoration-sprout"
+						>
+							Ver planos
+						</Link>
+					</div>
+					<p data-reveal="up" data-delay="0.6" className="mt-5 text-sm text-paper/60">
+						Grátis até 3 hortas. Sem cartão.
+					</p>
+				</div>
 
-			<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-				<div className="grid items-center gap-12 lg:grid-cols-2">
-					{/* Column 1: Content */}
-					<div className="animate-fade-in">
-						<Badge className="mb-4 bg-primary-600 hover:bg-primary-700">
-							<Sparkles className="mr-1 h-3 w-3" />
-							Ferramenta Premium para Hortas
-						</Badge>
-
-						<h1 className="text-balance text-5xl font-bold tracking-tight text-gray-900 lg:text-6xl">
-							Planeie a sua{" "}
-							<span className="bg-linear-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent">
-								Mini Horta
-							</span>{" "}
-							com precisão
-						</h1>
-
-						<p className="mt-6 text-balance text-lg leading-8 text-muted-foreground">
-							Calcule custos com precisão, acompanhe o seu plantio e cultive alimentos saudáveis em casa.
-							A ferramenta completa para horticultores urbanos.
-						</p>
-
-						{/* CTA Buttons */}
-						<div className="mt-8 flex flex-col gap-4 sm:flex-row">
-							<Link href={`/${locale}/calculator`} className="cursor-pointer">
-								<Button size="lg" className="group w-full sm:w-auto">
-									Começar Agora
-									<ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-								</Button>
-							</Link>
-							<Link href={`/${locale}/pricing`}>
-								<Button variant="outline" size="lg" className="w-full sm:w-auto">
-									Ver Planos
-								</Button>
-							</Link>
-						</div>
-
-						{/* Trust Indicators */}
-						<div className="mt-8 flex flex-wrap items-center gap-6 text-sm text-muted-foreground">
-							<div className="flex items-center gap-2">
-								<CheckCircle2 className="h-5 w-5 text-primary-600" />
-								<span>Sem cartão necessário</span>
-							</div>
-							<div className="flex items-center gap-2">
-								<CheckCircle2 className="h-5 w-5 text-primary-600" />
-								<span>Teste grátis 14 dias</span>
-							</div>
-						</div>
+				{/* Photo + receipt */}
+				<div className="relative lg:col-span-5">
+					<div
+						data-reveal="up"
+						data-delay="0.2"
+						className="relative aspect-[4/5] overflow-hidden rounded-[2rem]"
+					>
+						<img
+							data-parallax="-8"
+							src="https://images.unsplash.com/photo-1622383563227-04401ab4e5ea?auto=format&fit=crop&w=1200&q=80"
+							alt="Mãos com luvas a assentar uma muda de abóbora em terra escura"
+							className="absolute inset-0 h-[116%] w-full object-cover"
+						/>
 					</div>
 
-					{/* Column 2: Calculator Preview Card */}
-					<div className="relative">
-						<div className="absolute inset-0 -z-10 bg-linear-to-tr from-primary-400/20 to-primary-600/20 blur-3xl" />
-						<Card className="border-2 border-primary-200 bg-white/80 shadow-2xl backdrop-blur">
-							<CardHeader>
-								<CardTitle className="flex items-center gap-2">
-									<Calculator className="h-5 w-5 text-primary-600" />
-									Exemplo de Cálculo
-								</CardTitle>
-							</CardHeader>
-							<CardContent className="space-y-4">
-								<div className="space-y-2">
-									<div className="flex justify-between text-sm">
-										<span className="text-muted-foreground">5x Tomates</span>
-										<span className="font-semibold">€12.50</span>
-									</div>
-									<div className="flex justify-between text-sm">
-										<span className="text-muted-foreground">3x Alface</span>
-										<span className="font-semibold">€4.50</span>
-									</div>
-									<div className="flex justify-between text-sm">
-										<span className="text-muted-foreground">2x Manjericão</span>
-										<span className="font-semibold">€3.60</span>
-									</div>
-								</div>
-								<div className="border-t pt-4">
-									<div className="flex items-center justify-between">
-										<span className="text-sm font-medium text-gray-900">Custo Total</span>
-										<span className="text-2xl font-bold text-primary-600">€20.60</span>
-									</div>
-								</div>
-								<div className="rounded-lg bg-green-50 p-3">
-									<div className="flex items-center gap-2">
-										<TrendingDown className="h-4 w-4 text-green-600" />
-										<span className="text-sm font-medium text-green-900">
-											Economia de 45% vs. supermercado
+					<div
+						data-reveal="up"
+						data-delay="0.7"
+						className="absolute -bottom-8 -left-4 w-[17.5rem] -rotate-3 sm:-left-16 sm:w-80"
+					>
+						<div className="receipt bg-paper px-6 pb-8 pt-9 text-ink shadow-[6px_6px_0_var(--color-moss-deep)]">
+							<p className="mb-4 flex justify-between text-xs font-semibold uppercase tracking-[0.14em] text-ink-soft">
+								<span>Exemplo</span>
+								<span>varanda 2 m²</span>
+							</p>
+							<ul className="space-y-2 border-b border-dashed border-ink/25 pb-4 text-sm tabular-nums">
+								{receipt.map((r) => (
+									<li key={r.name} className="flex justify-between gap-4">
+										<span>
+											<span className="text-ink-soft">{r.qty}×</span> {r.name}
 										</span>
-									</div>
-								</div>
-							</CardContent>
-						</Card>
+										<span>€{eur(r.price)}</span>
+									</li>
+								))}
+							</ul>
+							<p className="mt-4 flex items-baseline justify-between">
+								<span className="text-sm font-semibold">Total</span>
+								<span className="font-display text-4xl font-extrabold tracking-tight tabular-nums">
+									€
+									<span data-count={total.toFixed(2)} data-delay="0.9">
+										{eur(total)}
+									</span>
+								</span>
+							</p>
+						</div>
 					</div>
+				</div>
+			</div>
+
+			{/* Marquee */}
+			<div className="relative border-t border-paper/15 py-5" aria-hidden="true">
+				<div className="marquee-track flex w-max gap-10 whitespace-nowrap font-display text-2xl font-bold tracking-tight text-paper/45 sm:text-3xl">
+					{[...plants, ...plants].map((p, i) => (
+						<span key={i} className="flex items-center gap-10">
+							{p}
+							<span className="h-2 w-2 rounded-full bg-tomato" />
+						</span>
+					))}
 				</div>
 			</div>
 		</section>

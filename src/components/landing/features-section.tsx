@@ -1,133 +1,117 @@
-import { Calculator, Leaf, TrendingDown, Smartphone, CheckCircle2 } from "lucide-react";
-import Image from "next/image";
-import { Reveal } from "./reveal";
+// Stacked sticky panels: pure CSS (position: sticky), each one slides over the previous.
 
-const features = [
-	{
-		icon: Calculator,
-		title: "Calculadora de Custos Precisa",
-		description:
-			"Calcule o investimento total da sua horta antes de começar. Adicione plantas, terra, fertilizantes e veja os custos em tempo real.",
-		benefits: [
-			"Base de dados com 50+ plantas comuns",
-			"Preços atualizados do mercado português",
-			"Cálculo automático de materiais necessários",
-			"Comparação com preços de supermercado",
-		],
-		imagePosition: "left" as const,
-	},
-	{
-		icon: Leaf,
-		title: "Planeamento Inteligente",
-		description:
-			"Organize a sua horta por espaço disponível, época do ano e compatibilidade entre plantas. Receba sugestões personalizadas.",
-		benefits: [
-			"Calendário de plantação por região",
-			"Compatibilidade entre culturas",
-			"Otimização de espaço",
-			"Guias de cuidados para cada planta",
-		],
-		imagePosition: "right" as const,
-	},
-	{
-		icon: TrendingDown,
-		title: "Acompanhamento de Economias",
-		description:
-			"Veja quanto está a poupar ao cultivar em casa. Compare custos de produção vs. supermercado e acompanhe o retorno do investimento.",
-		benefits: [
-			"Dashboard com gastos totais",
-			"Cálculo de poupanças realizadas",
-			"Histórico de colheitas",
-			"Métricas de produtividade",
-		],
-		imagePosition: "left" as const,
-	},
-	{
-		icon: Smartphone,
-		title: "Acesso em Qualquer Lugar",
-		description:
-			"Sincronize os seus dados entre dispositivos. Planeie no computador, consulte no telemóvel enquanto está na horta ou loja.",
-		benefits: [
-			"Aplicação web responsiva",
-			"Funciona offline",
-			"Dados guardados na cloud",
-			"Exportação de listas de compras",
-		],
-		imagePosition: "right" as const,
-	},
+const months = [
+	{ m: "Mar", v: 38 },
+	{ m: "Abr", v: 22 },
+	{ m: "Mai", v: 9 },
+	{ m: "Jun", v: 14 },
+	{ m: "Jul", v: 6 },
+	{ m: "Ago", v: 4 },
 ];
+const maxMonth = Math.max(...months.map((m) => m.v));
+
+function PanelText({ n, title, children }: { n: string; title: string; children: React.ReactNode }) {
+	return (
+		<div className="flex flex-col justify-between gap-10 lg:col-span-5">
+			<span className="font-display text-sm font-bold tracking-[0.2em] opacity-60">{n} / 03</span>
+			<div>
+				<h3 className="display mb-6 text-[clamp(2.5rem,5vw,4.5rem)]">{title}</h3>
+				<p className="max-w-[40ch] text-lg leading-relaxed opacity-80">{children}</p>
+			</div>
+		</div>
+	);
+}
 
 export function FeaturesSection() {
 	return (
-		<section id="features" className="bg-white py-20 lg:py-24">
-			<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-				{/* Section Header */}
-				<Reveal direction="up">
-					<div className="text-center">
-						<p className="mb-4 text-sm font-semibold uppercase tracking-wide text-primary-600">A Solução</p>
-						<h2 className="mx-auto mb-4 max-w-3xl text-4xl font-bold tracking-tight text-gray-900 lg:text-5xl">
-							Tudo o Que Precisa Para Cultivar com Sucesso
-						</h2>
-						<p className="mx-auto mb-16 max-w-2xl text-lg text-muted-foreground">
-							Da calculadora ao acompanhamento, gerir a sua horta nunca foi tão simples
-						</p>
-					</div>
-				</Reveal>
+		<section id="features" className="bg-paper pb-24 lg:pb-40">
+			<div className="mx-auto max-w-[88rem] px-4 sm:px-8">
+				<h2
+					data-reveal="lines"
+					className="display mb-14 max-w-[14ch] text-[clamp(2.75rem,6vw,5.5rem)] text-ink lg:mb-20"
+				>
+					Três coisas, bem feitas.
+				</h2>
 
-				{/* Features List */}
-				<div className="space-y-24 lg:space-y-32">
-					{features.map((feature, index) => {
-						const Icon = feature.icon;
-						const isLeft = feature.imagePosition === "left";
+				<div className="space-y-6">
+					{/* 01 Calculadora */}
+					<article className="lg:sticky lg:top-24 grid min-h-[34rem] gap-10 rounded-[2rem] bg-sprout p-8 text-ink sm:p-12 lg:grid-cols-12 lg:p-16">
+						<PanelText n="01" title="Calculadora">
+							Escolhes da base de plantas com preços do mercado português, ajustas quantidades e o total
+							muda à frente dos teus olhos.
+						</PanelText>
+						<div className="flex items-center lg:col-span-6 lg:col-start-7">
+							<ul className="w-full divide-y divide-ink/15 rounded-[1.5rem] bg-paper p-2 text-ink shadow-[6px_6px_0_var(--color-moss)]">
+								{[
+									["Tomate cherry", 5, "12,50"],
+									["Hortelã", 2, "3,20"],
+									["Morango", 6, "10,80"],
+								].map(([name, qty, price]) => (
+									<li key={name} className="flex items-center gap-4 px-4 py-4">
+										<span className="flex-1 font-semibold">{name}</span>
+										<span className="flex items-center gap-3 rounded-full border border-line px-3 py-1 text-sm tabular-nums">
+											<span className="text-ink-soft">−</span>
+											{qty}
+											<span className="text-ink-soft">+</span>
+										</span>
+										<span className="w-16 text-right tabular-nums">€{price}</span>
+									</li>
+								))}
+								<li className="flex items-baseline justify-between px-4 py-5">
+									<span className="text-sm font-semibold">Total</span>
+									<span className="font-display text-3xl font-extrabold tabular-nums">€26,50</span>
+								</li>
+							</ul>
+						</div>
+					</article>
 
-						return (
-							<Reveal key={index} direction={isLeft ? "left" : "right"} delay={index * 100}>
-								<div
-									className={`grid items-center gap-12 lg:grid-cols-2 ${
-										isLeft ? "" : "lg:grid-flow-dense"
-									}`}
-								>
-									{/* Image/Mockup */}
-									<div className={`relative ${isLeft ? "" : "lg:col-start-2"}`}>
-										<div className="relative aspect-video overflow-hidden rounded-xl border-2 border-primary-200 bg-linear-to-br from-primary-50 to-primary-100 shadow-xl">
-											{/* Placeholder for screenshot - replace with actual image */}
-											<div className="flex h-full items-center justify-center">
-												<Icon className="h-24 w-24 text-primary-300" />
-											</div>
-										</div>
+					{/* 02 Guardar */}
+					<article className="lg:sticky lg:top-28 grid min-h-[34rem] gap-10 overflow-hidden rounded-[2rem] bg-moss-deep p-8 text-paper sm:p-12 lg:grid-cols-12 lg:p-16">
+						<PanelText n="02" title="Guarda cada horta">
+							Varanda, terraço, a horta da avó. Cada cálculo fica guardado para voltares a ele, mudar
+							quantidades e recalcular quando os preços mudam.
+						</PanelText>
+						<div className="relative min-h-72 overflow-hidden rounded-[1.5rem] lg:col-span-6 lg:col-start-7">
+							<img
+								data-parallax="-10"
+								src="https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?auto=format&fit=crop&w=1200&q=80"
+								alt="Vasos pretos vistos de cima, cada um com uma muda verde a despontar"
+								className="absolute inset-0 h-[115%] w-full object-cover"
+								loading="lazy"
+							/>
+						</div>
+					</article>
+
+					{/* 03 Dashboard */}
+					<article className="lg:sticky lg:top-32 grid min-h-[34rem] gap-10 rounded-[2rem] bg-paper-2 p-8 text-ink sm:p-12 lg:grid-cols-12 lg:p-16">
+						<PanelText n="03" title="Vê onde vai o dinheiro">
+							O dashboard junta o que gastaste em todas as hortas. Ao fim da época sabes exatamente quanto
+							custou cultivar.
+						</PanelText>
+						<figure className="flex flex-col justify-end lg:col-span-6 lg:col-start-7">
+							<div className="flex h-64 items-end gap-3 border-b border-ink/20 sm:gap-5" data-stagger>
+								{months.map((m) => (
+									<div key={m.m} className="flex flex-1 flex-col items-center gap-2">
+										<span className="text-xs tabular-nums text-ink-soft">€{m.v}</span>
+										<div
+											className="w-full rounded-t-xl bg-moss"
+											style={{ height: `${(m.v / maxMonth) * 12}rem` }}
+										/>
 									</div>
-
-									{/* Content */}
-									<div className={isLeft ? "" : "lg:col-start-1 lg:row-start-1"}>
-										{/* Icon Badge */}
-										<div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-primary-600/10">
-											<Icon className="h-7 w-7 text-primary-600" />
-										</div>
-
-										{/* Title */}
-										<h3 className="mb-4 text-3xl font-bold tracking-tight text-gray-900 lg:text-4xl">
-											{feature.title}
-										</h3>
-
-										{/* Description */}
-										<p className="mb-6 text-lg leading-relaxed text-muted-foreground">
-											{feature.description}
-										</p>
-
-										{/* Benefits List */}
-										<ul className="space-y-3">
-											{feature.benefits.map((benefit, benefitIndex) => (
-												<li key={benefitIndex} className="flex items-start gap-3">
-													<CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
-													<span className="text-gray-900">{benefit}</span>
-												</li>
-											))}
-										</ul>
-									</div>
-								</div>
-							</Reveal>
-						);
-					})}
+								))}
+							</div>
+							<div className="mt-3 flex gap-3 sm:gap-5">
+								{months.map((m) => (
+									<span key={m.m} className="flex-1 text-center text-sm font-semibold">
+										{m.m}
+									</span>
+								))}
+							</div>
+							<figcaption className="mt-6 text-sm text-ink-soft">
+								Gastos de exemplo de uma época, por mês.
+							</figcaption>
+						</figure>
+					</article>
 				</div>
 			</div>
 		</section>
