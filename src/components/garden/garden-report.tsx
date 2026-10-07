@@ -137,8 +137,8 @@ export function GardenReport({ view, month, locale, full = false, onToggleOwned 
 				<p className="font-semibold text-ink">
 					{savings.paybackWeeks !== null
 						? `Paga-se em cerca de ${savings.paybackWeeks} semanas`
-						: savings.verdict === "paga-se na 2.ª época"
-							? "Não se paga na 1.ª época, mas paga-se na 2.ª"
+						: savings.verdict === "paga-se em várias épocas"
+							? `Não se paga na 1.ª época. Paga-se em cerca de ${savings.seasonsToPayback} épocas.`
 							: "Não compensa financeiramente. Mas sabe melhor."}
 				</p>
 				<p className="mt-1 text-sm text-ink-soft">
@@ -184,6 +184,7 @@ export function GardenReport({ view, month, locale, full = false, onToggleOwned 
 										Temporizador: {w.timer.minutes} min, {everyLabel(w.timer.everyDays)}, às 7h00.
 									</p>
 								)}
+								{w.timer?.note && <p className="text-xs text-ink-soft">{w.timer.note}</p>}
 								<p className="mt-1 text-xs text-ink-soft">
 									{w.hint} Cerca de {liters.format(w.litersPerWeek)} L por semana.
 								</p>

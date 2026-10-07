@@ -38,6 +38,12 @@ test("só rega o que está na horta nesse mês; perenes o ano inteiro", () => {
 	assert.deepEqual(months[6].crops.map((c) => c.slug), ["tomate", "alecrim"]);
 });
 
+test("planta comprada não se rega antes de ser transplantada", () => {
+	const fev = (from: "planta" | "semente") => water(input({ crops: [{ slug: "tomate", from }] }))[1].crops.length;
+	assert.equal(fev("planta"), 0);
+	assert.equal(fev("semente"), 1);
+});
+
 test("tomate em vaso no julho de Castelo Branco: rega diária e aviso de calor", () => {
 	const jul = water(input({ zone: "interior", crops: [{ slug: "tomate" }] }))[6];
 	assert.equal(jul.crops[0].everyDays, 1);

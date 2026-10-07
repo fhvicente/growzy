@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { CROPS } from "./catalog.ts";
 import { input } from "./fixtures.ts";
 import { lisbonMonth, planGarden } from "./plan.ts";
 import { redactForPlan } from "./redact.ts";
@@ -20,6 +21,7 @@ test("Grátis só recebe o mês atual e a lista do que está bloqueado", () => {
 test("Standard recebe tudo", () => {
 	const v = redactForPlan(planGarden(input(), 7), { fullYearWatering: true, fullYearCalendar: true, savingsDetail: true }, 7);
 	assert.equal(v.watering.length, 12);
+	assert.equal(redactForPlan(planGarden(input(), 7), { fullYearWatering: false, fullYearCalendar: false, savingsDetail: false }, 7).savings.seasonsToPayback, planGarden(input(), 7).savings.seasonsToPayback);
 	assert.deepEqual(v.locked, []);
 });
 
@@ -36,7 +38,7 @@ test("validação rejeita slugs desconhecidos, medidas fora dos limites, repetid
 	assert.equal(bad({ space: { kind: "vasos", widthCm: 10, lengthCm: 100 } }), false);
 	assert.equal(bad({ space: { kind: "vasos", widthCm: 100.5, lengthCm: 100 } }), false);
 	assert.equal(bad({ crops: [{ slug: "tomate" }, { slug: "tomate" }] }), false);
-	assert.equal(bad({ crops: Array.from({ length: 16 }, () => ({ slug: "tomate" })) }), false);
+	assert.equal(bad({ crops: CROPS.slice(0, 16).map((c) => ({ slug: c.slug })) }), false);
 	assert.equal(bad({ owned: ["helicoptero"] }), false);
 	assert.equal(bad({ crops: [{ slug: "tomate", quantity: 0 }] }), false);
 });
