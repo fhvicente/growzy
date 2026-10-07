@@ -180,7 +180,7 @@ export const gardens = pgTable("gardens", {
 }, (t) => ({ gardensUserIdx: index("gardens_user_idx").on(t.userId) }));
 ```
 
-Uma migração Drizzle cria `gardens` e apaga `calculations`, e também as tabelas `plants` e `products` (vazias, substituídas pelo catálogo). Ao ler, o input guardado é validado outra vez. Se um slug deixou de existir, essa cultura sai do cálculo com um aviso.
+Uma migração Drizzle cria `gardens` e apaga `calculations`, `plants` e `products` (vazias na base local, substituídas pelo catálogo). Antes de aplicar em produção, confirmar que estão vazias; se não estiverem, exportar primeiro. Ao ler, o input guardado é validado outra vez. Se um slug deixou de existir, essa cultura sai do cálculo com um aviso.
 
 ## API
 

@@ -260,7 +260,7 @@ A horta passa a ser uma entidade própria, `gardens`, que guarda o input do moto
 - **Gating por plano.** A configuração de `src/lib/plans.ts` lê `users.subscription_plan` e é chamada nas rotas da API. Esconder a feature só no frontend não chega.
 - **Cálculo.** Um motor em funções puras (`src/lib/garden`) corre só no servidor (`POST /api/garden/plan`). O que é pago é retirado da resposta no servidor (`redactForPlan`), nunca só escondido na UI.
 - **Jobs agendados.** Um cron diário gera os lembretes (IPMA) e um cron semanal envia o resumo. No Fly, isto pode ser uma máquina agendada ou um endpoint protegido chamado por cron externo.
-- **Migração.** `calculations`, `plants` e `products` estão vazias em produção e local; são removidas na Fase 0 sem migração de dados.
+- **Migração.** `calculations`, `plants` e `products` estão vazias na base local; confirmar em produção antes de as remover na Fase 0 (se tiverem dados, exportar primeiro).
 
 ## Faseamento e roadmap
 
