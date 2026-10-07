@@ -233,7 +233,7 @@ export function CalculatorClient({ locale, garden }: Props) {
 												variant="ghost"
 												size="icon"
 												aria-label={`Menos ${crop?.name}`}
-												onClick={() => setCrop(c.slug, { quantity: q > 1 ? q - 1 : undefined })}
+												onClick={() => setCrop(c.slug, { quantity: Math.max(1, q - 1) })}
 											>
 												<Minus className="h-4 w-4" />
 											</Button>

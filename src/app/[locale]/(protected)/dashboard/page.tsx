@@ -51,7 +51,8 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
 				total: euro.format(r.shopping.total.mid),
 				summary: `Este mês: ${parts.join(" · ")}`,
 			};
-		} catch {
+		} catch (e) {
+			console.error("planGarden failed for garden", g.id, e);
 			return { id: g.id, name: g.name, total: "", summary: "Abre para ver os detalhes" };
 		}
 	});

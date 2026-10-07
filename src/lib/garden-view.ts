@@ -1,5 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
+import { cropBySlug, supplyBySlug } from "@/lib/garden/catalog";
 import { lisbonMonth, planGarden } from "@/lib/garden/plan";
 import { type PlanView, redactForPlan } from "@/lib/garden/redact";
 import type { GardenInput } from "@/lib/garden/types";
@@ -22,5 +23,8 @@ export async function getUserGarden(rawId: string, userId: string) {
 		.select()
 		.from(gardens)
 		.where(and(eq(gardens.id, id), eq(gardens.userId, userId)));
-	return row ?? null;
+	if (!row) return null;
+	// Entradas guardadas com slugs que o catálogo já não tem fariam o PATCH do talão falhar (400).
+	const input = { ...row.input, crops: row.input.crops.filter((c) => cropBySlug.has(c.slug)), owned: row.input.owned.filter((o) => supplyBySlug.has(o)) };
+	return { ...row, input };
 }
