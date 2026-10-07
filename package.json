@@ -8,7 +8,7 @@
 		"format": "biome format --write .",
 		"start": "next start",
 		"lint": "next lint",
-		"test": "node --test src/lib/garden",
+		"test": "node --test 'src/lib/garden/**/*.test.ts'",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",
 		"db:studio": "drizzle-kit studio",
