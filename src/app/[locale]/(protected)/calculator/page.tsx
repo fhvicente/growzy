@@ -1,27 +1,29 @@
-import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { CalculatorClient } from "@/components/calculator/calculator-client";
+import { auth } from "@/lib/auth";
+import { getUserGarden } from "@/lib/garden-view";
 
 interface CalculatorPageProps {
 	params: Promise<{ locale: string }>;
+	searchParams: Promise<{ garden?: string }>;
 }
 
-export default async function CalculatorPage({ params }: CalculatorPageProps) {
+export default async function CalculatorPage({ params, searchParams }: CalculatorPageProps) {
 	const { locale } = await params;
+	const { garden: gardenId } = await searchParams;
 	const session = await auth.api.getSession({ headers: await headers() });
 	if (!session) {
 		redirect(`/${locale}/login`);
 	}
 
-	// Mock plant data - replace with actual data from your database
-	const plants = [
-		{ id: "tomato", name: "Tomate", price: 2.5 },
-		{ id: "lettuce", name: "Alface", price: 1.5 },
-		{ id: "basil", name: "Manjericão", price: 1.8 },
-		{ id: "pepper", name: "Pimento", price: 2.2 },
-		{ id: "cucumber", name: "Pepino", price: 2.0 },
-	];
+	const garden = gardenId ? await getUserGarden(gardenId, session.user.id) : null;
+	if (gardenId && !garden) notFound();
 
-	return <CalculatorClient plants={plants} />;
+	return (
+		<CalculatorClient
+			locale={locale}
+			garden={garden ? { id: garden.id, name: garden.name, input: garden.input } : undefined}
+		/>
+	);
 }
