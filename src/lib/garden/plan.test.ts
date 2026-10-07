@@ -25,7 +25,7 @@ test("Standard recebe tudo", () => {
 
 test("mês de Lisboa na passagem de ano", () => {
 	assert.equal(lisbonMonth(new Date("2026-12-31T23:30:00Z")), 12);
-	assert.equal(lisbonMonth(new Date("2026-07-01T00:30:00Z")), 7); // 01:30 em Lisboa (verão)
+	assert.equal(lisbonMonth(new Date("2026-06-30T23:30:00Z")), 7); // 00:30 de 1 de julho em Lisboa (verão)
 });
 
 test("validação rejeita slugs desconhecidos, medidas fora dos limites, repetidos e mais de 15", () => {

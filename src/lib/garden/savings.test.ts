@@ -27,7 +27,7 @@ test("1 alecrim em vaso não compensa financeiramente", () => {
 test("terra com o que já se tem paga-se na 1.ª época e dá semanas", () => {
 	const s = save(input({ space: { kind: "terra", widthCm: 300, lengthCm: 200 }, crops: [{ slug: "tomate" }, { slug: "curgete" }, { slug: "feijao-verde", from: "semente" }], owned: ["pa-mao", "luvas", "regador"] }));
 	assert.equal(s.verdict, "paga-se na 1.ª época");
-	assert.ok(s.paybackWeeks !== null && s.paybackWeeks > 8 && s.paybackWeeks < 20, String(s.paybackWeeks));
+	assert.equal(s.paybackWeeks, 12);
 });
 
 test("detalhe por cultura soma o valor total", () => {
