@@ -6,6 +6,8 @@ const MID_MONTH_DAY = [15, 46, 74, 105, 135, 166, 196, 227, 258, 288, 319, 349];
 const DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 const LIGHT_FACTOR: Record<Light, number> = { sol: 1, "meia-sombra": 0.75, sombra: 0.5 };
 const DRIPPER_LH = 2;
+/** Gotejadores por m² em canteiro e terra (espaçamento ~50 cm). */
+export const DRIPPERS_PER_M2 = 4;
 const round1 = (n: number) => Math.round(n * 10) / 10;
 
 /** Radiação extraterrestre Ra (MJ/m²/dia), FAO-56 eq. 21–25. */
@@ -32,6 +34,7 @@ export function watering(input: GardenInput, allocation: Allocation): MonthWater
 		// ponytail: vasos de varanda assumem-se abrigados da chuva
 		const rainMm = potted ? 0 : (0.8 * c.precipMm) / DAYS_IN_MONTH[i];
 		let weekly = 0;
+		const perDripper: Record<string, number> = {}; // L/dia por gotejador, por cultura
 
 		// Só as culturas que estão na horta neste mês.
 		const present = allocation.crops.flatMap((a) => {
@@ -50,8 +53,10 @@ export function watering(input: GardenInput, allocation: Allocation): MonthWater
 			const reserve = potted ? a.potLPerPlant * 0.2 * 0.5 : canopyM2 * 300 * 0.1 * 0.5;
 			const everyDays = Math.min(7, Math.max(1, Math.floor(reserve / need)));
 			const perWatering = need * everyDays;
-			// Em vaso, um gotejador por planta; em canteiro e terra, um por m².
-			const dripLiters = potted ? perWatering : netMm * everyDays;
+			// Em vaso, um gotejador por planta; em canteiro e terra, DRIPPERS_PER_M2 por m².
+			const dripLpd = potted ? need : netMm / DRIPPERS_PER_M2;
+			perDripper[a.slug] = dripLpd;
+			const dripLiters = dripLpd * everyDays;
 			return {
 				slug: a.slug,
 				litersPerDay: Math.round(need * 100) / 100,
@@ -63,15 +68,21 @@ export function watering(input: GardenInput, allocation: Allocation): MonthWater
 
 		const scheduled = crops.filter((w) => w.dripMinutes !== null && w.everyDays !== null);
 		const hot = c.tMax >= 30;
+		// Um só temporizador: ao menor intervalo, com os minutos que a cultura mais sedenta pede.
+		let timer: MonthWatering["timer"] = null;
+		if (scheduled.length) {
+			const d = Math.min(...scheduled.map((w) => w.everyDays ?? 7));
+			const lpd = scheduled.map((w) => perDripper[w.slug]);
+			timer = { everyDays: d, minutes: Math.ceil(((Math.max(...lpd) * d) / DRIPPER_LH) * 60) };
+			if (Math.max(...lpd) / Math.min(...lpd) > 2) timer.note = "As plantas com menos sede recebem água a mais: põe-nas noutra linha ou usa gotejadores de menor caudal.";
+		}
 		return {
 			month: i + 1,
 			et0: round1(et0),
 			crops,
 			litersPerWeek: round1(weekly),
 			hint: hot && potted ? "Rega antes das 9h e, com calor, também ao fim da tarde nos vasos pequenos." : "Rega antes das 9h.",
-			timer: scheduled.length
-				? { everyDays: Math.min(...scheduled.map((w) => w.everyDays ?? 7)), minutes: Math.max(...scheduled.map((w) => w.dripMinutes ?? 0)) }
-				: null,
+			timer,
 		};
 	});
 }

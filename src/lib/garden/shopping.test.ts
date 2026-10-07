@@ -40,3 +40,8 @@ test("sementes contam pacotes, não plantas", () => {
 	const s = shop(input({ crops: [{ slug: "cenoura", quantity: 60 }] }));
 	assert.deepEqual(s.lines.find((l) => l.slug === "cenoura"), { ...s.lines.find((l) => l.slug === "cenoura"), quantity: 1, unit: "pacotes" });
 });
+
+test("gota-a-gota em canteiro e terra: 4 gotejadores por m²", () => {
+	const t = shop(input({ irrigation: "gota-a-gota", space: { kind: "terra", widthCm: 300, lengthCm: 300 } }));
+	assert.equal(t.lines.find((l) => l.slug === "gotejador")?.quantity, 36); // 9 m² × 4
+});

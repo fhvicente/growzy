@@ -57,6 +57,22 @@ test("gota-a-gota dá minutos e o temporizador usa o menor intervalo", () => {
 	assert.equal(jul.timer?.everyDays, Math.min(...jul.crops.map((c) => c.everyDays ?? 7)));
 });
 
+test("temporizador: ao menor intervalo, com os minutos da cultura mais sedenta, e aviso se as sedes diferem muito", () => {
+	const jul = water(input({ irrigation: "gota-a-gota", crops: [{ slug: "alface" }, { slug: "curgete" }] }))[6];
+	const d = Math.min(...jul.crops.map((c) => c.everyDays ?? 7));
+	const expected = Math.ceil((Math.max(...jul.crops.map((c) => c.litersPerDay)) * d * 60) / 2);
+	assert.equal(jul.timer?.everyDays, d);
+	assert.ok(Math.abs(jul.timer!.minutes - expected) <= 1, `${jul.timer?.minutes} vs ${expected}`);
+	assert.match(jul.timer!.note ?? "", /menos sede/);
+	const solo = water(input({ irrigation: "gota-a-gota", crops: [{ slug: "curgete" }] }))[6];
+	assert.equal(solo.timer?.note, undefined);
+});
+
+test("terra 3×3 m em julho: 4 gotejadores/m², temporizador de 1 a 2,5 h", () => {
+	const jul = water(input({ irrigation: "gota-a-gota", space: { kind: "terra", widthCm: 300, lengthCm: 300 }, crops: [{ slug: "tomate" }, { slug: "curgete" }] }))[6];
+	assert.ok(jul.timer && jul.timer.minutes >= 60 && jul.timer.minutes <= 150, String(jul.timer?.minutes));
+});
+
 test("menos luz, menos água", () => {
 	const sol = water(input({ crops: [{ slug: "alface" }] }))[6].crops[0].litersPerDay;
 	const meia = water(input({ light: "meia-sombra", crops: [{ slug: "alface" }] }))[6].crops[0].litersPerDay;
