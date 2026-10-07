@@ -98,7 +98,7 @@ export type MonthWatering = {
 	crops: CropWatering[];
 	litersPerWeek: number;
 	hint: string;
-	timer: { everyDays: number; minutes: number } | null;
+	timer: { everyDays: number; minutes: number; note?: string } | null;
 };
 
 export type CropCalendar = {

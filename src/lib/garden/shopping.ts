@@ -1,5 +1,6 @@
 import { cropBySlug, supplyBySlug } from "./catalog.ts";
 import { range, round2 } from "./money.ts";
+import { DRIPPERS_PER_M2 } from "./watering.ts";
 import type { Allocation, GardenInput, PriceRange, Shopping, ShoppingLine } from "./types.ts";
 
 export function shoppingList(input: GardenInput, allocation: Allocation): Shopping {
@@ -47,7 +48,7 @@ export function shoppingList(input: GardenInput, allocation: Allocation): Shoppi
 		supply("regador", 1);
 	} else {
 		supply("kit-gota-base", 1);
-		const drippers = kind === "vasos" ? allocation.crops.reduce((s, a) => s + a.quantity, 0) : Math.ceil(areaM2);
+		const drippers = kind === "vasos" ? allocation.crops.reduce((s, a) => s + a.quantity, 0) : Math.ceil(areaM2 * DRIPPERS_PER_M2);
 		supply("gotejador", drippers);
 	}
 
