@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { GardenReport } from "@/components/garden/garden-report";
 import { Button } from "@/components/ui/button";
 import type { PlanView } from "@/lib/garden/redact";
@@ -17,14 +17,16 @@ type Props = {
 
 export function GardenResultClient({ locale, garden, view, month }: Props) {
 	const router = useRouter();
-	// Estado local para que dois cliques seguidos não se anulem.
+	// Estado local para resposta imediata; os envios vão em série para não se pisarem.
 	const [owned, setOwned] = useState(garden.input.owned);
-	const [busy, setBusy] = useState(false);
+	const ownedRef = useRef(owned);
+	const confirmedRef = useRef(garden.input.owned);
+	const queueRef = useRef(Promise.resolve());
+	const [pending, setPending] = useState(0);
 	const [error, setError] = useState<string | null>(null);
 
-	const send = async (method: "PATCH" | "DELETE", body?: object) => {
-		setBusy(true);
-		setError(null);
+	const send = async (method: "PATCH" | "DELETE", body: object | undefined, failMsg: string) => {
+		setPending((n) => n + 1);
 		let ok = false;
 		try {
 			const res = await fetch(`/api/gardens/${garden.id}`, {
@@ -37,23 +39,39 @@ export function GardenResultClient({ locale, garden, view, month }: Props) {
 		} catch {
 			ok = false;
 		} finally {
-			setBusy(false);
+			setPending((n) => n - 1);
 		}
-		if (!ok) setError("Não consegui guardar. Tenta outra vez.");
+		if (ok) setError(null);
+		else setError(failMsg);
 		return ok;
 	};
 
-	const toggleOwned = async (slug: string, has: boolean) => {
+	const toggleOwned = (slug: string, has: boolean) => {
 		const without = (l: string[]) => l.filter((s) => s !== slug);
-		const next = has ? [...without(owned), slug] : without(owned);
-		setOwned(next);
-		if (await send("PATCH", { input: { ...garden.input, owned: next } })) router.refresh();
-		else setOwned((cur) => (has ? without(cur) : [...without(cur), slug])); // reverte só esta caixa
+		ownedRef.current = has ? [...without(ownedRef.current), slug] : without(ownedRef.current);
+		setOwned(ownedRef.current);
+		queueRef.current = queueRef.current.then(async () => {
+			const sent = ownedRef.current; // a lista mais recente no momento do envio
+			if (
+				await send(
+					"PATCH",
+					{ input: { ...garden.input, owned: sent } },
+					"Não consegui guardar. Tenta outra vez.",
+				)
+			) {
+				confirmedRef.current = sent;
+				router.refresh();
+			} else {
+				ownedRef.current = confirmedRef.current;
+				setOwned(confirmedRef.current);
+			}
+		});
 	};
 
 	const remove = async () => {
 		if (!confirm(`Apagar "${garden.name}"?`)) return;
-		if (await send("DELETE")) router.push(`/${locale}/dashboard`);
+		if (await send("DELETE", undefined, "Não consegui apagar. Tenta outra vez."))
+			router.push(`/${locale}/dashboard`);
 	};
 
 	return (
@@ -69,7 +87,7 @@ export function GardenResultClient({ locale, garden, view, month }: Props) {
 							Editar
 						</Button>
 					</Link>
-					<Button variant="ghost" size="sm" onClick={remove} disabled={busy}>
+					<Button variant="ghost" size="sm" onClick={remove} disabled={pending > 0}>
 						Apagar
 					</Button>
 				</div>
