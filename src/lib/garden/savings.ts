@@ -18,8 +18,10 @@ export function savings(allocation: Allocation, shopping: Shopping): Savings {
 		const max = a.quantity * crop.yieldKg[1] * crop.marketEurKg;
 		low += min;
 		high += max;
-		weightedDays += ((min + max) / 2) * crop.daysToHarvest[0];
-		return [{ slug: a.slug, min: range(min, max).min, max: range(min, max).max }];
+		const harvestDaysMean = (crop.daysToHarvest[0] + crop.daysToHarvest[1]) / 2;
+		weightedDays += ((min + max) / 2) * harvestDaysMean;
+		const cropRange = range(min, max);
+		return [{ slug: a.slug, min: cropRange.min, max: cropRange.max }];
 	});
 	const harvestValue = range(low, high);
 	const cost = shopping.total;
