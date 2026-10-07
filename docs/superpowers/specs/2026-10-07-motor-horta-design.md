@@ -14,7 +14,7 @@ A pessoa indica o espaço que tem (medidas, tipo, luz, zona) e as culturas que q
 
 | Decisão | Escolha | Porquê |
 | --- | --- | --- |
-| Onde corre o motor | Só no servidor, `POST /api/garden/plan`, cliente com debounce de 300 ms | O que é pago nunca chega ao browser de quem não paga |
+| Onde corre o motor | Só no servidor, `POST /api/garden/plan`, cliente com debounce de 300 ms | O resultado calculado e personalizado que é pago nunca chega ao browser de quem não paga. O catálogo (dados de referência públicos) vai no bundle do cliente para o seletor de culturas |
 | Onde vivem os dados agronómicos | `src/lib/garden/catalog.ts`, versionado em git | Revisto em PR, testável sem BD, sem migrações para mudar um valor |
 | O que se guarda | Só o input (`gardens.input`); o resultado recalcula-se ao abrir | Preços e regras atualizados chegam às hortas antigas |
 | Fluxo | O utilizador escolhe culturas; o motor distribui a área; as quantidades podem ser ajustadas | Ajuda a decidir sem tirar controlo |
@@ -111,7 +111,7 @@ Saída: `{ crops: { slug, quantity, footprintCm2, container: "floreira-80" | "va
 - **Recipientes:** em `vasos`, o número de vasos por tamanho e `ceil(n / perFloreira)` floreiras por cultura.
 - **Substrato:** `vasos` = soma dos volumes dos recipientes; `canteiro-elevado` = área em m² × 300 L. Arredonda para sacos de 50 L. `terra` = composto, 10 L/m², em sacos de 50 L.
 - **Ferramentas:** `pa-mao`, `luvas`.
-- **Rega:** `regador` se `irrigation = "regador"`. Caso contrário, `kit-gota-base` e gotejadores: um por planta em `vasos`, um por m² (arredondado para cima) em canteiro e terra.
+- **Rega:** `regador` se `irrigation = "regador"`. Caso contrário, `kit-gota-base` e gotejadores: um por planta em `vasos`, 4 por m² (`DRIPPERS_PER_M2`, arredondado para cima) em canteiro e terra.
 - Os itens cujo slug está em `owned` ficam na lista com `owned: true` e saem do total.
 - **Total:** `{ min: Σ mínimos, max: Σ máximos, mid: (min + max) / 2 }`, arredondado ao cêntimo. A soma das linhas é sempre igual ao total (critério do PRD).
 - **Duráveis:** recipientes, ferramentas e rega são duráveis. Plantas, sementes, substrato e composto são consumíveis. Esta distinção serve à poupança da 2.ª época.
@@ -125,12 +125,12 @@ Para cada mês `m` (1–12), na zona do input:
 - **Fator de luz:** `sol` 1, `meia-sombra` 0,75, `sombra` 0,5.
 - **Chuva efetiva** (só `canteiro-elevado` e `terra`; os vasos de varanda assumem-se abrigados): `0,8 × precipMm / dias do mês`.
 - **Necessidade por planta** (L/dia) = `max(0, ET0 × kc × fatorLuz − chuva) × área de copa em m²` (área de copa = `spacingCm²`; a pegada do vaso subestima a copa de um tomateiro).
-- **Só se rega o que está na horta:** cada cultura conta nos meses entre a sementeira ou plantação e o fim da colheita (`cropMonths().active`). As perenes (`perennial: true`: morango, hortelã, cebolinho, alecrim, tomilho) contam o ano inteiro.
+- **Só se rega o que está na horta:** cada cultura conta nos meses entre a sementeira ou plantação e o fim da colheita (`cropMonths(crop, zone, from).active`). Para plantas compradas (`from = "planta"`) com meses de transplante não há sementeira (`sow = []`) e a cultura entra na horta no transplante. As perenes (`perennial: true`: morango, hortelã, cebolinho, alecrim, tomilho) contam o ano inteiro.
 - **Reserva** (L): vasos e floreiras = `volume do recipiente por planta × 0,2 × 0,5`; canteiro e terra = `ocupação em m² × 300 mm × 0,1 × 0,5`.
 - **Dias entre regas** = `clamp(floor(reserva / necessidade), 1, 7)`. Com necessidade 0: "não precisa de rega este mês (a chuva chega)".
 - **Litros por rega** = `necessidade × dias entre regas`, arredondado a 0,1 L.
 - **Hora:** "antes das 9h". Se `tMax ≥ 30` nesse mês, junta-se "e ao fim da tarde nos vasos pequenos".
-- **Gota-a-gota:** `minutos = ceil(litros por rega / 2 L/h × 60)`. Texto: "programa o temporizador para X min, de N em N dias, às 7h00". Em `terra` e canteiro, com um gotejador por m², usa-se a soma dos litros das plantas desse m².
+- **Gota-a-gota:** `minutos = ceil(litros por rega / 2 L/h × 60)`. Texto: "programa o temporizador para X min, de N em N dias, às 7h00". Em canteiro e terra há 4 gotejadores por m², pelo que cada um debita `ET × kc × luz − chuva` / 4 por dia. Há um só temporizador por mês: corre ao menor intervalo entre regas das culturas agendadas, com os minutos da cultura mais sedenta (`max ceil(litros por dia por gotejador × intervalo / 2 × 60)`). Se a sede por gotejador da mais sedenta for mais de 2× a da menos sedenta, junta-se o aviso "As plantas com menos sede recebem água a mais: põe-nas noutra linha ou usa gotejadores de menor caudal." Os minutos de cada cultura (`dripMinutes`) mantêm-se ao seu próprio intervalo.
 - **Resumo:** agrupa as culturas pelo intervalo de rega, por exemplo `"de 2 em 2 dias: tomate (6), pimento (2) — ~1,8 L cada"`. Também mostra o total em litros por semana.
 
 ### 4. Calendário (`calendar`)
@@ -149,7 +149,8 @@ Para cada mês `m` (1–12), na zona do input:
   - `semanasAtéColheita = média de daysToHarvest das culturas, ponderada pelo valor / 7`
   - `semanasDeColheita = 8` (constante, documentada)
   - `payback = semanasAtéColheita + custo / (valor / semanasDeColheita)`
-  - Se `custo > valor`: `payback = null` com `verdict = "paga-se na 2.ª época"` quando a poupança da 2.ª época é > 0, e `"não compensa financeiramente"` quando não é. O resultado nunca se esconde.
+  - Se `custo > valor`: `payback = null`. O `verdict` é `"paga-se em várias épocas"` quando a poupança a partir da 2.ª época é > 0, e `"não compensa financeiramente"` quando não é. O resultado nunca se esconde.
+  - `seasonsToPayback` = 1 se a poupança da 1.ª época (valor central) é ≥ 0; senão, se a da 2.ª em diante é > 0, `1 + ceil(−poupança1.ª / poupança2.ª+)`; senão `null`. É visível em todos os planos (faz parte da resposta principal).
 - Por cultura: `{ slug, valueEur: [low, high] }`.
 - Tudo leva a etiqueta "estimativa".
 
@@ -181,7 +182,7 @@ export const gardens = pgTable("gardens", {
 }, (t) => ({ gardensUserIdx: index("gardens_user_idx").on(t.userId) }));
 ```
 
-Uma migração Drizzle cria `gardens` e apaga `calculations`, `plants` e `products` (vazias na base local, substituídas pelo catálogo). Antes de aplicar em produção, confirmar que estão vazias; se não estiverem, exportar primeiro. Ao ler, o input guardado é validado outra vez. Se um slug deixou de existir, essa cultura sai do cálculo com um aviso.
+Uma migração Drizzle cria `gardens` e apaga `calculations`, `plants` e `products` (vazias na base local, substituídas pelo catálogo). Antes de aplicar em produção, confirmar que estão vazias; se não estiverem, exportar primeiro. Ao ler, o input guardado é validado outra vez. Se um slug deixou de existir, essa cultura sai do cálculo com um aviso, e `getUserGarden` devolve o input já limpo de culturas e material desconhecidos (para o PATCH do talão não falhar). A migração falha de propósito se as tabelas antigas tiverem dados.
 
 ## API
 
