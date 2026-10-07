@@ -119,7 +119,8 @@ export type Savings = {
 	firstSeason: Range;
 	nextSeason: Range;
 	paybackWeeks: number | null;
-	verdict: "paga-se na 1.ª época" | "paga-se na 2.ª época" | "não compensa financeiramente";
+	seasonsToPayback: number | null;
+	verdict: "paga-se na 1.ª época" | "paga-se em várias épocas" | "não compensa financeiramente";
 	byCrop: { slug: string; min: number; max: number }[];
 };
 

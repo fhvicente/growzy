@@ -41,8 +41,10 @@ export function savings(allocation: Allocation, shopping: Shopping): Savings {
 		paybackWeeks = Math.round(weeksToHarvest + cost.mid / (harvestValue.mid / HARVEST_WEEKS));
 		verdict = "paga-se na 1.ª época";
 	} else {
-		verdict = nextSeason.mid > 0 ? "paga-se na 2.ª época" : "não compensa financeiramente";
+		verdict = nextSeason.mid > 0 ? "paga-se em várias épocas" : "não compensa financeiramente";
 	}
+	const first = minus(harvestValue, cost);
+	const seasonsToPayback = first.mid >= 0 ? 1 : nextSeason.mid > 0 ? 1 + Math.ceil(-first.mid / nextSeason.mid) : null;
 
-	return { harvestValue, firstSeason: minus(harvestValue, cost), nextSeason, paybackWeeks, verdict, byCrop };
+	return { harvestValue, firstSeason: first, nextSeason, paybackWeeks, seasonsToPayback, verdict, byCrop };
 }

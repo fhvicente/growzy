@@ -36,7 +36,7 @@ export function watering(input: GardenInput, allocation: Allocation): MonthWater
 		// Só as culturas que estão na horta neste mês.
 		const present = allocation.crops.flatMap((a) => {
 			const crop = cropBySlug.get(a.slug);
-			return crop && cropMonths(crop, input.zone).active.includes(i + 1) ? [{ a, crop }] : [];
+			return crop && cropMonths(crop, input.zone, a.from).active.includes(i + 1) ? [{ a, crop }] : [];
 		});
 		const crops = present.map(({ a, crop }) => {
 			const kc = crop.kc;

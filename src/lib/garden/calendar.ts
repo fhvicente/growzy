@@ -1,15 +1,16 @@
 import { cropBySlug } from "./catalog.ts";
-import type { Allocation, Calendar, Crop, CropCalendar, GardenInput, Zone } from "./types.ts";
+import type { Allocation, Calendar, Crop, CropCalendar, From, GardenInput, Zone } from "./types.ts";
 
 const wrap = (m: number) => ((((m - 1) % 12) + 12) % 12) + 1;
 const ZONE_SHIFT: Record<Zone, number> = { "litoral-norte": 0, interior: 1, sul: -1 };
 
 /** Meses de uma cultura numa zona: semear, transplantar, colher e meses em que está na horta. */
-export function cropMonths(crop: Crop, zone: Zone) {
+export function cropMonths(crop: Crop, zone: Zone, from?: From) {
 	// ponytail: ajuste de zona de ±1 mês só nas culturas de estação quente (heurística, dita na UI)
 	const shift = crop.season === "quente" ? ZONE_SHIFT[zone] : 0;
-	const sow = crop.sowMonths.map((m) => wrap(m + shift));
 	const transplant = crop.transplantMonths.map((m) => wrap(m + shift));
+	// Planta comprada: não há sementeira, a cultura entra na horta no transplante.
+	const sow = from === "planta" && transplant.length ? [] : crop.sowMonths.map((m) => wrap(m + shift));
 	const harvest = new Set<number>();
 	const active = new Set<number>(crop.perennial ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] : sow);
 	for (const m of transplant.length ? transplant : sow) {
@@ -28,7 +29,7 @@ export function calendar(input: GardenInput, allocation: Allocation, currentMont
 	const crops: CropCalendar[] = allocation.crops.flatMap((a) => {
 		const crop = cropBySlug.get(a.slug);
 		if (!crop) return [];
-		const { sow, transplant, harvest } = cropMonths(crop, input.zone);
+		const { sow, transplant, harvest } = cropMonths(crop, input.zone, a.from);
 		const useTransplant = transplant.length > 0 && (a.from === "planta" || sow.length === 0);
 		const action = useTransplant ? "transplantar" : "semear";
 		const list = useTransplant ? transplant : sow;
