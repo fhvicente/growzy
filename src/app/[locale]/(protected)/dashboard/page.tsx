@@ -35,16 +35,25 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
 
 	// Só o mês atual: é o que todos os planos veem.
 	const items = rows.map((g) => {
-		const r = planGarden(g.input, month);
-		const days = r.watering[month - 1].crops.flatMap((c) => (c.everyDays === null ? [] : [c.everyDays]));
-		const todo = r.calendar.months[month - 1];
-		const parts = [
-			days.length ? `rega ${everyLabel(Math.min(...days))}` : "sem rega",
-			todo.sow.length ? `semeia ${names(todo.sow)}` : "",
-			todo.transplant.length ? `transplanta ${names(todo.transplant)}` : "",
-			todo.harvest.length ? `colhe ${names(todo.harvest)}` : "",
-		].filter(Boolean);
-		return { id: g.id, name: g.name, total: euro.format(r.shopping.total.mid), summary: parts.join(" · ") };
+		try {
+			const r = planGarden(g.input, month);
+			const days = r.watering[month - 1].crops.flatMap((c) => (c.everyDays === null ? [] : [c.everyDays]));
+			const todo = r.calendar.months[month - 1];
+			const parts = [
+				days.length ? `rega ${everyLabel(Math.min(...days))}` : "sem rega",
+				todo.sow.length ? `semeia ${names(todo.sow)}` : "",
+				todo.transplant.length ? `transplanta ${names(todo.transplant)}` : "",
+				todo.harvest.length ? `colhe ${names(todo.harvest)}` : "",
+			].filter(Boolean);
+			return {
+				id: g.id,
+				name: g.name,
+				total: euro.format(r.shopping.total.mid),
+				summary: `Este mês: ${parts.join(" · ")}`,
+			};
+		} catch {
+			return { id: g.id, name: g.name, total: "", summary: "Abre para ver os detalhes" };
+		}
 	});
 
 	return (
@@ -65,7 +74,9 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
 			{items.length === 0 ? (
 				<div className="mt-10 rounded-lg border border-dashed border-line p-8 text-center">
 					<p className="font-display text-xl font-bold text-ink">Ainda não tens hortas.</p>
-					<p className="mt-1 text-ink-soft">Mede o espaço, escolhe o que queres plantar e nós fazemos as contas.</p>
+					<p className="mt-1 text-ink-soft">
+						Mede o espaço, escolhe o que queres plantar e nós fazemos as contas.
+					</p>
 					<Link href={`/${locale}/calculator`} className="mt-4 inline-block">
 						<Button variant="tomato">Planeia a tua primeira horta</Button>
 					</Link>
@@ -80,7 +91,7 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
 							>
 								<span>
 									<span className="font-semibold text-ink">{g.name}</span>
-									<span className="block text-sm text-ink-soft">Este mês: {g.summary}</span>
+									<span className="block text-sm text-ink-soft">{g.summary}</span>
 								</span>
 								<span className="tabular-nums text-ink">{g.total}</span>
 							</Link>
