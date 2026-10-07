@@ -71,14 +71,19 @@ export function CalculatorClient({ locale, garden }: Props) {
 	const [input, setInput] = useState<GardenInput>(garden?.input ?? DEFAULT_INPUT);
 	const [query, setQuery] = useState("");
 	const [result, setResult] = useState<{ view: PlanView; month: number } | null>(null);
-	const [error, setError] = useState<{ text: string; upgrade?: boolean } | null>(null);
+	const [error, setError] = useState<{ text: string } | null>(null);
 	const [name, setName] = useState(garden?.name ?? "");
 	const [saving, setSaving] = useState(false);
+	const [saveError, setSaveError] = useState<{ text: string; upgrade?: boolean } | null>(null);
 
-	const set = (patch: Partial<GardenInput>) => setInput((i) => ({ ...i, ...patch }));
-	const setSpace = (patch: Partial<GardenInput["space"]>) => setInput((i) => ({ ...i, space: { ...i.space, ...patch } }));
+	const update = (fn: (i: GardenInput) => GardenInput) => {
+		setSaveError(null);
+		setInput(fn);
+	};
+	const set = (patch: Partial<GardenInput>) => update((i) => ({ ...i, ...patch }));
+	const setSpace = (patch: Partial<GardenInput["space"]>) => update((i) => ({ ...i, space: { ...i.space, ...patch } }));
 	const setCrop = (slug: string, patch: Partial<GardenInput["crops"][number]>) =>
-		setInput((i) => ({ ...i, crops: i.crops.map((c) => (c.slug === slug ? { ...c, ...patch } : c)) }));
+		update((i) => ({ ...i, crops: i.crops.map((c) => (c.slug === slug ? { ...c, ...patch } : c)) }));
 
 	const sizesOk = validSize(input.space.widthCm) && validSize(input.space.lengthCm);
 	const ready = input.crops.length > 0 && sizesOk;
@@ -117,18 +122,24 @@ export function CalculatorClient({ locale, garden }: Props) {
 
 	const save = async () => {
 		setSaving(true);
-		const res = await fetch(garden ? `/api/gardens/${garden.id}` : "/api/gardens", {
-			method: garden ? "PATCH" : "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ name: name.trim(), input }),
-		});
-		const json = await res.json().catch(() => ({ ok: false }));
-		setSaving(false);
-		if (!json.ok) {
-			setError({ text: json.error ?? "Não consegui guardar.", upgrade: json.code === "PLAN_LIMIT_EXCEEDED" });
-			return;
+		setSaveError(null);
+		try {
+			const res = await fetch(garden ? `/api/gardens/${garden.id}` : "/api/gardens", {
+				method: garden ? "PATCH" : "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ name: name.trim(), input }),
+			});
+			const json = await res.json().catch(() => ({ ok: false }));
+			if (!json.ok) {
+				setSaveError({ text: json.error ?? "Não consegui guardar.", upgrade: json.code === "PLAN_LIMIT_EXCEEDED" });
+				return;
+			}
+			router.push(`/${locale}/calculator/result/${json.data.id}`);
+		} catch {
+			setSaveError({ text: "Não consegui guardar. Verifica a ligação e tenta outra vez." });
+		} finally {
+			setSaving(false);
 		}
-		router.push(`/${locale}/calculator/result/${json.data.id}`);
 	};
 
 	return (
@@ -240,7 +251,7 @@ export function CalculatorClient({ locale, garden }: Props) {
 											{c.quantity ? (
 												<button
 													type="button"
-													className="text-xs text-moss underline"
+													className="min-h-11 min-w-11 text-xs text-moss underline"
 													onClick={() => setCrop(c.slug, { quantity: undefined })}
 												>
 													auto
@@ -251,7 +262,7 @@ export function CalculatorClient({ locale, garden }: Props) {
 											{crop?.price.planta && (
 												<button
 													type="button"
-													className="rounded-full border border-line px-3 py-1 text-xs"
+													className="min-h-11 rounded-full border border-line px-3 text-xs"
 													aria-label={`Comprar ${crop.name} como ${c.from === "semente" ? "planta" : "semente"}`}
 													onClick={() => setCrop(c.slug, { from: c.from === "semente" ? "planta" : "semente" })}
 												>
@@ -315,12 +326,7 @@ export function CalculatorClient({ locale, garden }: Props) {
 					)}
 					{error && (
 						<p role="alert" className="text-sm text-destructive">
-							{error.text}{" "}
-							{error.upgrade && (
-								<Link href={`/${locale}/pricing`} className="underline">
-									Ver planos
-								</Link>
-							)}
+							{error.text}
 						</p>
 					)}
 					{ready && result && (
@@ -333,11 +339,24 @@ export function CalculatorClient({ locale, garden }: Props) {
 									maxLength={80}
 									placeholder="Varanda da cozinha"
 									value={name}
-									onChange={(e) => setName(e.target.value)}
+									onChange={(e) => {
+									setName(e.target.value);
+									setSaveError(null);
+								}}
 								/>
 								<Button className="w-full" disabled={saving || !name.trim()} onClick={save}>
 									{garden ? "Guardar alterações" : "Guardar horta"}
 								</Button>
+								{saveError && (
+									<p role="alert" className="text-sm text-destructive">
+										{saveError.text}{" "}
+										{saveError.upgrade && (
+											<Link href={`/${locale}/pricing`} className="underline">
+												Ver planos
+											</Link>
+										)}
+									</p>
+								)}
 							</div>
 						</>
 					)}

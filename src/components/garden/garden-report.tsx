@@ -232,19 +232,21 @@ export function GardenReport({ view, month, locale, full = false, onToggleOwned 
 								<h4 className="text-sm font-semibold">{label}</h4>
 								<ul className="divide-y divide-line">
 									{lines.map((l) => (
-										<li key={l.slug} className="flex items-center gap-3 py-2 text-sm">
-											{onToggleOwned && l.group !== "plantas" && (
-												<input
-													type="checkbox"
-													className="h-5 w-5 accent-moss"
-													checked={l.owned}
-													onChange={(e) => onToggleOwned(l.slug, e.target.checked)}
-													aria-label={`Já tenho: ${l.name}`}
-												/>
-											)}
-											<span className={cn("flex-1", l.owned && "text-ink-soft line-through")}>
-												{l.quantity} {l.unit} · {l.name}
-											</span>
+										<li key={l.slug} className="flex items-center gap-3 text-sm">
+											<label className="flex min-h-11 flex-1 items-center gap-3">
+												{onToggleOwned && l.group !== "plantas" && (
+													<input
+														type="checkbox"
+														className="h-5 w-5 accent-moss"
+														checked={l.owned}
+														onChange={(e) => onToggleOwned(l.slug, e.target.checked)}
+														aria-label={`Já tenho: ${l.name}`}
+													/>
+												)}
+												<span className={cn("flex-1", l.owned && "text-ink-soft line-through")}>
+													{l.quantity} {l.unit} · {l.name}
+												</span>
+											</label>
 											<span className="tabular-nums">{money(l.min, l.max)}</span>
 										</li>
 									))}
