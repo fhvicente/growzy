@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm";
-import { boolean, decimal, index, integer, json, pgTable, serial, text, timestamp, varchar } from "drizzle-orm/pg-core";
+import { boolean, index, integer, json, pgTable, serial, text, timestamp, varchar } from "drizzle-orm/pg-core";
+import type { GardenInput } from "./garden/types";
 
 export const users = pgTable("users", {
 	id: text("id").primaryKey(),
@@ -83,50 +84,6 @@ export const verifications = pgTable(
 	}),
 );
 
-export const plants = pgTable("plants", {
-	id: serial("id").primaryKey(),
-	name: varchar("name", { length: 255 }).notNull(),
-	scientificName: varchar("scientific_name", { length: 255 }),
-	description: text("description"),
-	imageUrl: varchar("image_url", { length: 2048 }),
-	potSizeRequired: integer("pot_size_required").notNull(),
-	soilAmountRequired: decimal("soil_amount_required", {
-		precision: 8,
-		scale: 2,
-	}).notNull(),
-	seedsPerPlant: integer("seeds_per_plant").default(1).notNull(),
-	price: decimal("price", { precision: 8, scale: 2 }).default("0").notNull(),
-	createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
-	updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
-});
-
-export const products = pgTable("products", {
-	id: serial("id").primaryKey(),
-	name: varchar("name", { length: 255 }).notNull(),
-	type: varchar("type", { length: 50 }).notNull(),
-	description: text("description"),
-	imageUrl: varchar("image_url", { length: 2048 }),
-	price: decimal("price", { precision: 8, scale: 2 }).notNull(),
-	storeName: varchar("store_name", { length: 255 }).notNull(),
-	storeUrl: varchar("store_url", { length: 2048 }).notNull(),
-	size: decimal("size", { precision: 8, scale: 2 }),
-	createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
-	updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
-});
-
-export const calculations = pgTable("calculations", {
-	id: serial("id").primaryKey(),
-	userId: text("user_id").notNull(),
-	plantsData: json("plants_data").notNull(),
-	productsData: json("products_data").notNull(),
-	totalCost: decimal("total_cost", { precision: 10, scale: 2 }).notNull(),
-	plantsCount: integer("plants_count").notNull(),
-	estimatedSavings: decimal("estimated_savings", { precision: 10, scale: 2 }).default("0").notNull(),
-	isPublic: boolean("is_public").default(false).notNull(),
-	createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
-	updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
-});
-
 export const subscriptions = pgTable("subscriptions", {
 	id: serial("id").primaryKey(),
 	userId: text("user_id").notNull(),
@@ -140,6 +97,24 @@ export const subscriptions = pgTable("subscriptions", {
 	createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
 	updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
 });
+
+export const gardens = pgTable(
+	"gardens",
+	{
+		id: serial("id").primaryKey(),
+		userId: text("user_id")
+			.notNull()
+			.references(() => users.id, { onDelete: "cascade" }),
+		name: varchar("name", { length: 80 }).notNull(),
+		input: json("input").$type<GardenInput>().notNull(),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+		updatedAt: timestamp("updated_at")
+			.defaultNow()
+			.$onUpdate(() => new Date())
+			.notNull(),
+	},
+	(t) => ({ gardensUserIdx: index("gardens_user_idx").on(t.userId) }),
+);
 
 export const webhookLogs = pgTable("webhook_logs", {
 	id: serial("id").primaryKey(),
