@@ -8,8 +8,10 @@
 		"format": "biome format --write .",
 		"start": "next start",
 		"lint": "next lint",
+		"test": "node --test src/lib/garden",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",
+		"db:studio": "drizzle-kit studio",
 		"db:import:sqlite": "tsx scripts/migrate-sqlite-to-postgres.ts",
 		"auth:generate": "npx @better-auth/cli@latest generate"
 	},
