@@ -1,15 +1,15 @@
 const steps = [
 	{
-		title: "Escolhe as plantas",
-		description: "Procura na base de plantas e vê o preço de cada uma antes de decidir.",
+		title: "Mede o espaço",
+		description: "Largura, comprimento, quanta luz tem e a tua zona.",
 	},
 	{
-		title: "Ajusta as quantidades",
-		description: "Diz quantas queres. A Growzy soma tudo e mostra o investimento total.",
+		title: "Escolhe o que plantar",
+		description: "A Growzy diz quantas cabem, o que comprar e quanto custa.",
 	},
 	{
-		title: "Guarda e planta",
-		description: "Fica com a lista para levar ao viveiro e o cálculo guardado para a próxima época.",
+		title: "Rega e colhe",
+		description: "Quanto regar este mês, quando semear e colher, e se compensa.",
 	},
 ];
 

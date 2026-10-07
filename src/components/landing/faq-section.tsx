@@ -6,15 +6,15 @@ import { Plus } from "lucide-react";
 const faqs = [
 	{
 		question: "Funciona para hortas em varanda?",
-		answer: "Sim. A calculadora serve para qualquer espaço, de um parapeito a um quintal. Tu escolhes as plantas e as quantidades.",
+		answer: "Sim. Serve para qualquer espaço, de um parapeito a um quintal. Dizes as medidas, a luz e o que queres plantar, e a Growzy calcula o resto.",
 	},
 	{
 		question: "De onde vêm os preços das plantas?",
-		answer: "São médias do mercado português e são revistos com regularidade. Se no teu viveiro o preço for outro, a conta continua a dar-te uma boa ideia.",
+		answer: "São estimativas de referência e a app mostra o mês em que foram verificadas. Confirma sempre na loja: se o preço for outro, a conta continua a dar-te uma boa ideia.",
 	},
 	{
 		question: "Como cancelo a subscrição?",
-		answer: "Nas definições da conta, a qualquer momento. Não há fidelização.",
+		answer: "Não há fidelização: o Standard é mensal ou anual e não ficas preso a nada.",
 	},
 	{
 		question: "As plantas são as que se cultivam cá?",
