@@ -37,8 +37,8 @@ export function FeaturesSection() {
 					{/* 01 Calculadora */}
 					<article className="lg:sticky lg:top-24 grid min-h-[34rem] gap-10 rounded-[2rem] bg-sprout p-8 text-ink sm:p-12 lg:grid-cols-12 lg:p-16">
 						<PanelText n="01" title="Calculadora">
-							Escolhes da base de plantas com preços do mercado português, ajustas quantidades e o total
-							muda à frente dos teus olhos.
+							Medes o espaço, dizes quanta luz tem e o que queres plantar. A Growzy diz quantas plantas
+							cabem, o que comprar e quanto custa.
 						</PanelText>
 						<div className="flex items-center lg:col-span-6 lg:col-start-7">
 							<ul className="w-full divide-y divide-ink/15 rounded-[1.5rem] bg-paper p-2 text-ink shadow-[6px_6px_0_var(--color-moss)]">
@@ -68,8 +68,8 @@ export function FeaturesSection() {
 					{/* 02 Guardar */}
 					<article className="lg:sticky lg:top-28 grid min-h-[34rem] gap-10 overflow-hidden rounded-[2rem] bg-moss-deep p-8 text-paper sm:p-12 lg:grid-cols-12 lg:p-16">
 						<PanelText n="02" title="Guarda cada horta">
-							Varanda, terraço, a horta da avó. Cada cálculo fica guardado para voltares a ele, mudar
-							quantidades e recalcular quando os preços mudam.
+							Varanda, terraço, a horta da avó. Cada horta fica guardada. Voltas a ela quando quiseres, e marcas o que já tens
+							para sair do total.
 						</PanelText>
 						<div className="relative min-h-72 overflow-hidden rounded-[1.5rem] lg:col-span-6 lg:col-start-7">
 							<img
@@ -84,9 +84,9 @@ export function FeaturesSection() {
 
 					{/* 03 Dashboard */}
 					<article className="lg:sticky lg:top-32 grid min-h-[34rem] gap-10 rounded-[2rem] bg-paper-2 p-8 text-ink sm:p-12 lg:grid-cols-12 lg:p-16">
-						<PanelText n="03" title="Vê onde vai o dinheiro">
-							O dashboard junta o que gastaste em todas as hortas. Ao fim da época sabes exatamente quanto
-							custou cultivar.
+						<PanelText n="03" title="Vê quanto poupas">
+							Vês quanto vale a colheita ao preço do supermercado e em quantas semanas a horta se
+							paga. São estimativas, não promessas.
 						</PanelText>
 						<figure className="flex flex-col justify-end lg:col-span-6 lg:col-start-7">
 							<div className="flex h-64 items-end gap-3 border-b border-ink/20 sm:gap-5" data-stagger>
@@ -108,7 +108,7 @@ export function FeaturesSection() {
 								))}
 							</div>
 							<figcaption className="mt-6 text-sm text-ink-soft">
-								Gastos de exemplo de uma época, por mês.
+								Valores de exemplo, só para ilustrar.
 							</figcaption>
 						</figure>
 					</article>
