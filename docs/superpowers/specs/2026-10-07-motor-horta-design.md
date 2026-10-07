@@ -124,7 +124,8 @@ Para cada mês `m` (1–12), na zona do input:
 - **ET0** (mm/dia) = `0,0023 × 0,408 × Ra × (Tmédia + 17,8) × √(tMax − tMin)`, com `Tmédia = (tMin + tMax) / 2`.
 - **Fator de luz:** `sol` 1, `meia-sombra` 0,75, `sombra` 0,5.
 - **Chuva efetiva** (só `canteiro-elevado` e `terra`; os vasos de varanda assumem-se abrigados): `0,8 × precipMm / dias do mês`.
-- **Necessidade por planta** (L/dia) = `max(0, ET0 × kc × fatorLuz − chuva) × ocupação em m²`.
+- **Necessidade por planta** (L/dia) = `max(0, ET0 × kc × fatorLuz − chuva) × área de copa em m²` (área de copa = `spacingCm²`; a pegada do vaso subestima a copa de um tomateiro).
+- **Só se rega o que está na horta:** cada cultura conta nos meses entre a sementeira ou plantação e o fim da colheita (`cropMonths().active`). As perenes (`perennial: true`: morango, hortelã, cebolinho, alecrim, tomilho) contam o ano inteiro.
 - **Reserva** (L): vasos e floreiras = `volume do recipiente por planta × 0,2 × 0,5`; canteiro e terra = `ocupação em m² × 300 mm × 0,1 × 0,5`.
 - **Dias entre regas** = `clamp(floor(reserva / necessidade), 1, 7)`. Com necessidade 0: "não precisa de rega este mês (a chuva chega)".
 - **Litros por rega** = `necessidade × dias entre regas`, arredondado a 0,1 L.
@@ -237,7 +238,7 @@ Os valores esperados são calculados à mão e escritos no teste:
 3. Quantidades manuais acima do espaço dão `usedPct > 100` e um aviso.
 4. Com `light = "sombra"`, o tomate vai para `excluded` com o motivo.
 5. Um item em `owned` sai do total. A soma das linhas é igual ao total.
-6. ET0 de julho em Faro fica a ±10% do valor de referência FAO para a latitude de 37° (cerca de 6 mm/dia).
+6. Ra bate com o exemplo 8 da FAO-56 (20° S, 3 de setembro → 32,2 MJ/m²/dia, ±0,1). A ET0 de julho em Faro fica entre 4,5 e 6,5 mm/dia: o método de Hargreaves subestima no litoral, onde a amplitude térmica é pequena.
 7. Os dias entre regas ficam sempre em [1, 7]. Com chuva acima da necessidade em `terra`, a necessidade é 0.
 8. O ajuste de zona: tomate no `sul` semeia 1 mês antes do `litoral-norte`, e a alface não muda.
 9. A colheita dá a volta ao ano (sementeira em novembro, colheita em fevereiro).
