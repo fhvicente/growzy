@@ -18,14 +18,12 @@ export async function POST(request: NextRequest) {
 	const body = await request.json();
 	const { plan } = body;
 
-	// Validar plano
-	if (!plan || (plan !== PLAN_TYPES.STANDARD && plan !== PLAN_TYPES.PREMIUM)) {
-		return NextResponse.json({ ok: false, error: "Invalid plan selected" }, { status: 400 });
+	// Premium só se vende quando existir (Fase 3 do PRD)
+	if (plan !== PLAN_TYPES.STANDARD) {
+		return NextResponse.json({ ok: false, error: "Plano indisponível" }, { status: 400 });
 	}
 
-	// Selecionar o Price ID apropriado
-	const priceId =
-		plan === PLAN_TYPES.STANDARD ? process.env.STRIPE_STANDARD_PRICE_ID : process.env.STRIPE_PREMIUM_PRICE_ID;
+	const priceId = process.env.STRIPE_STANDARD_PRICE_ID;
 
 	if (!priceId || !process.env.STRIPE_SECRET_KEY) {
 		return NextResponse.json({ ok: false, error: "Stripe not configured" }, { status: 500 });
