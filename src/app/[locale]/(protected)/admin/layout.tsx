@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
+import { PageReveal } from "@/components/page-reveal";
 import { isAdmin } from "@/lib/admin";
 import { auth } from "@/lib/auth";
 
@@ -21,6 +22,7 @@ export default async function AdminLayout({
 		["Visão geral", ""],
 		["Utilizadores", "users"],
 		["Webhooks", "webhook-logs"],
+		["Catálogo", "catalog"],
 		["Auditoria", "audit"],
 	];
 	return (
@@ -33,7 +35,7 @@ export default async function AdminLayout({
 					</Link>
 				))}
 			</nav>
-			{children}
+			<PageReveal>{children}</PageReveal>
 		</div>
 	);
 }

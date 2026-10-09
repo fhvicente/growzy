@@ -34,3 +34,93 @@ export async function applySubscription(userId: string, subscription: Stripe.Sub
 		.where(eq(users.id, userId));
 	return plan;
 }
+
+/** Aplica um evento do Stripe à BD. Pode correr mais de uma vez para o mesmo evento (o Stripe repete; o admin reprocessa). */
+export async function handleStripeEvent(stripe: Stripe, event: Stripe.Event) {
+	switch (event.type) {
+		case "checkout.session.completed": {
+			const session = event.data.object as Stripe.Checkout.Session;
+			if (session.subscription && session.client_reference_id) {
+				const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
+				await applySubscription(session.client_reference_id, subscription);
+				await db
+					.update(users)
+					.set({ stripeId: session.customer as string })
+					.where(eq(users.id, session.client_reference_id));
+			}
+			break;
+		}
+
+		case "customer.subscription.updated": {
+			const subscription = event.data.object as Stripe.Subscription;
+			const [existingSub] = await db
+				.select()
+				.from(subscriptions)
+				.where(eq(subscriptions.stripeId, subscription.id))
+				.limit(1);
+
+			if (existingSub) {
+				await applySubscription(existingSub.userId, subscription);
+			}
+			break;
+		}
+
+		case "customer.subscription.deleted": {
+			const subscription = event.data.object as Stripe.Subscription;
+
+			// Atualizar registro de assinatura
+			await db
+				.update(subscriptions)
+				.set({
+					stripeStatus: "canceled",
+					endsAt: new Date(),
+				})
+				.where(eq(subscriptions.stripeId, subscription.id));
+
+			// Voltar usuário para plano gratuito
+			const [existingSub] = await db
+				.select()
+				.from(subscriptions)
+				.where(eq(subscriptions.stripeId, subscription.id))
+				.limit(1);
+
+			if (existingSub) {
+				await db
+					.update(users)
+					.set({
+						subscriptionPlan: "free",
+						subscriptionStatus: "inactive",
+					})
+					.where(eq(users.id, existingSub.userId));
+			}
+			break;
+		}
+
+		case "invoice.payment_failed": {
+			const invoice = event.data.object as Stripe.Invoice & {
+				subscription?: string | Stripe.Subscription | null;
+			};
+			const subscriptionId =
+				typeof invoice.subscription === "string" ? invoice.subscription : invoice.subscription?.id;
+
+			// Notificar usuário sobre falha no pagamento
+			if (subscriptionId) {
+				const [existingSub] = await db
+					.select()
+					.from(subscriptions)
+					.where(eq(subscriptions.stripeId, subscriptionId))
+					.limit(1);
+
+				if (existingSub) {
+					await db
+						.update(users)
+						.set({
+							subscriptionStatus: "past_due",
+						})
+						.where(eq(users.id, existingSub.userId));
+				}
+			}
+			break;
+		}
+	}
+}

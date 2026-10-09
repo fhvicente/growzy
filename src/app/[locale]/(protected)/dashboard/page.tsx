@@ -2,10 +2,11 @@ import { desc, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { MONTHS, everyLabel } from "@/components/garden/garden-report";
+import { everyLabel, MONTHS } from "@/components/garden/garden-report";
 import { Button } from "@/components/ui/button";
 import { isAdmin } from "@/lib/admin";
 import { auth } from "@/lib/auth";
+import { applyCatalogPrices } from "@/lib/catalog-prices";
 import { db } from "@/lib/db";
 import { cropBySlug } from "@/lib/garden/catalog";
 import { lisbonMonth, planGarden } from "@/lib/garden/plan";
@@ -31,6 +32,7 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
 	const [rows, plan] = await Promise.all([
 		db.select().from(gardens).where(eq(gardens.userId, session.user.id)).orderBy(desc(gardens.updatedAt)),
 		getUserPlan(session.user.id),
+		applyCatalogPrices(),
 	]);
 	const { maxHortas } = getPlanFeatures(plan);
 	const month = lisbonMonth();

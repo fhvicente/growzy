@@ -39,7 +39,7 @@ export default async function AdminPage({ params }: { params: Promise<{ locale: 
 		["Utilizadores", u.total, `+${u.new30} nos últimos 30 dias`, "users"],
 		["Subscritores ativos", u.paying, `${u.standard} Standard · ${u.premium} Premium`],
 		["Conversão", pct(u.paying, u.total), "utilizadores com plano pago"],
-		["Pagamentos em atraso", u.pastDue, "estado past_due", "users"],
+		["Pagamentos em atraso", u.pastDue, "estado past_due", "users?status=past_due"],
 		["Hortas guardadas", g.total, `+${g.new30} nos últimos 30 dias`],
 		["Ativação", pct(g.owners, u.total), `${g.owners} utilizadores com pelo menos 1 horta`],
 		["Webhooks falhados", w.failed, "últimos 7 dias", "webhook-logs"],

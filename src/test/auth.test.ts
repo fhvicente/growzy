@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { GET as webhookLogs } from "@/app/api/admin/webhook-logs/route";
+import { GET as me } from "@/app/api/auth/me/route";
 import { POST as authPost } from "@/app/api/auth/[...better-auth]/route";
 import { getUser, req, signUp } from "./api.ts";
 
@@ -55,4 +56,18 @@ test("admin vem de ADMIN_EMAILS (sem maiúsculas/espaços a contar), não de um 
 	assert.ok(Array.isArray((await r.json()).data));
 	assert.equal((await get(outro.cookie)).status, 403);
 	assert.equal((await get(legado.cookie)).status, 403);
+});
+
+test("/api/auth/me diz se é admin a partir da sessão, não do pedido", async () => {
+	assert.equal((await me(req("/api/auth/me"))).status, 401);
+	assert.equal((await me(req("/api/auth/me", { cookie: "better-auth.session_token=forjado" }))).status, 401);
+
+	const normal = await signUp();
+	const admin = await signUp();
+	process.env.ADMIN_EMAILS = admin.user.email.toUpperCase();
+	// Pedir isAdmin no URL/header não muda nada.
+	const r = await me(req("/api/auth/me?isAdmin=true", { cookie: normal.cookie, headers: { "x-admin": "true" } }));
+	assert.equal((await r.json()).isAdmin, false);
+	assert.equal(r.headers.get("cache-control"), "private, no-store");
+	assert.equal((await (await me(req("/api/auth/me", { cookie: admin.cookie }))).json()).isAdmin, true);
 });

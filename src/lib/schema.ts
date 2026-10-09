@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { boolean, index, integer, json, pgTable, serial, text, timestamp, varchar } from "drizzle-orm/pg-core";
+import { boolean, doublePrecision, index, integer, json, pgTable, primaryKey, serial, text, timestamp, varchar } from "drizzle-orm/pg-core";
 import type { GardenInput } from "./garden/types";
 
 export const users = pgTable("users", {
@@ -139,6 +139,20 @@ export const auditLogs = pgTable(
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 	},
 	(t) => ({ auditTargetIdx: index("audit_logs_target_idx").on(t.targetId) }),
+);
+
+// Preços editados no admin, por cima do catálogo do código (src/lib/garden/catalog.ts).
+// field: planta | semente | material (min/max) ou mercado (€/kg em min, max = min).
+export const catalogPrices = pgTable(
+	"catalog_prices",
+	{
+		slug: varchar("slug", { length: 50 }).notNull(),
+		field: varchar("field", { length: 20 }).notNull(),
+		min: doublePrecision("min").notNull(),
+		max: doublePrecision("max").notNull(),
+		updatedAt: timestamp("updated_at").defaultNow().notNull(),
+	},
+	(t) => ({ pk: primaryKey({ columns: [t.slug, t.field] }) }),
 );
 
 export const usersRelations = relations(users, ({ many }) => ({
