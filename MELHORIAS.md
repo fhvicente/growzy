@@ -1,83 +1,83 @@
-# Growzy: o que falta melhorar e corrigir
+# Growzy: what still needs improving and fixing
 
-Atualizado em 2026-10-02.
+Updated on 2026-10-02.
 
-## Resumo
+## Summary
 
-A landing e a identidade Growzy estão feitas. Faltam corrigir 4 bugs funcionais e redesenhar as páginas internas, que por agora só receberam as cores e os componentes novos. Ordem sugerida: corrigir os bugs, alinhar a copy e os planos, e só depois redesenhar a calculadora e o dashboard.
+The Growzy landing page and identity are done. 4 functional bugs still need fixing and the inner pages need a redesign; so far they have only received the new colours and components. Suggested order: fix the bugs, align the copy and the plans, and only then redesign the calculator and the dashboard.
 
-Já está feito: tokens de cor e tipografia, logo, botões, inputs, header, footer e a landing completa com GSAP. As páginas internas já têm a marca nova, mas o layout continua o antigo.
+Already done: colour and typography tokens, logo, buttons, inputs, header, footer and the full landing page with GSAP. The inner pages already have the new brand, but the layout is still the old one.
 
-## Correções urgentes
+## Urgent fixes
 
-Estes bugs afetam os utilizadores ou o deploy hoje.
+These bugs affect users or the deploy today.
 
-| Problema | Onde | Correção |
+| Problem | Where | Fix |
 | --- | --- | --- |
-| O botão "Terminar sessão" não faz nada (desktop e mobile) | `src/components/header.tsx` | Ligar o `onClick` a `authClient.signOut()` e redirecionar para a landing |
-| O link para o resultado não tem locale: `/calculator/result/:id` dá 404 | `src/app/[locale]/(protected)/dashboard/page.tsx:167` | Usar `/${locale}/calculator/result/${calc.id}` |
-| Link para `/contact`, uma página que não existe | `src/app/[locale]/pricing/page.tsx:257` | Remover o link ou trocá-lo por um `mailto:` real |
-| O avatar mostra sempre a letra "U" | `src/components/header.tsx:82` | Usar a inicial de `session.user.name` |
-| O `npm install` no Docker pode falhar por conflito de peer deps (drizzle-orm / react-native) | `Dockerfile` | `RUN npm install --legacy-peer-deps`, ou copiar um `.npmrc` para a imagem |
-| 3 erros de tipo: a versão da API Stripe `2026-01-28.clover` já não é a esperada | `src/app/api/stripe/webhook`, `subscription/checkout`, `subscription/success` | Atualizar `apiVersion` para `2026-02-25.clover` ou fixar a versão do pacote `stripe` |
-| O README manda copiar um `.env.example` que não existe | `README.md` | Criar `.env.example` com `DATABASE_URL`, as chaves Stripe e as de Better Auth |
+| The "Terminar sessão" (Sign out) button does nothing (desktop and mobile) | `src/components/header.tsx` | Wire the `onClick` to `authClient.signOut()` and redirect to the landing page |
+| The link to the result has no locale: `/calculator/result/:id` returns 404 | `src/app/[locale]/(protected)/dashboard/page.tsx:167` | Use `/${locale}/calculator/result/${calc.id}` |
+| Link to `/contact`, a page that does not exist | `src/app/[locale]/pricing/page.tsx:257` | Remove the link or replace it with a real `mailto:` |
+| The avatar always shows the letter "U" | `src/components/header.tsx:82` | Use the initial of `session.user.name` |
+| `npm install` in Docker can fail due to a peer deps conflict (drizzle-orm / react-native) | `Dockerfile` | `RUN npm install --legacy-peer-deps`, or copy an `.npmrc` into the image |
+| 3 type errors: the Stripe API version `2026-01-28.clover` is no longer the expected one | `src/app/api/stripe/webhook`, `subscription/checkout`, `subscription/success` | Update `apiVersion` to `2026-02-25.clover` or pin the `stripe` package version |
+| The README says to copy a `.env.example` that does not exist | `README.md` | Create `.env.example` with `DATABASE_URL`, the Stripe keys and the Better Auth ones |
 
-## Copy e coerência
+## Copy and consistency
 
-A landing trata por "tu", mas as páginas internas tratam por "você" ("Aceda à sua conta", "Planeie a sua horta"). Além disso, os planos prometem funcionalidades que só existem como flags.
+The landing page addresses the user as "tu" (informal), but the inner pages use "você" (formal) ("Aceda à sua conta", "Planeie a sua horta"). Also, the plans promise features that only exist as flags.
 
-- [ ] Passar para "tu" no login, registo, recuperar e repor palavra-passe, verificar email, calculadora, dashboard, pricing e `plan-display.tsx`
-- [ ] Decidir o que fazer com as funcionalidades prometidas mas não implementadas: calendário de plantação, comparação de poupança, exportação de relatórios, planeamento com IA, previsões de colheita e alertas. Hoje são só flags em `src/lib/plans.ts`. As opções são implementá-las, marcá-las como "em breve" ou retirá-las da landing e da página de planos
-- [ ] Unificar os planos: a página `/pricing` e a secção de preços da landing têm listas diferentes. Gerar as duas a partir de `PLAN_FEATURES`
-- [ ] Confirmar se o preço anual (€39 e €79) existe no Stripe; se não existir, retirá-lo
-- [ ] Confirmar se os preços das plantas são mesmo revistos com regularidade, como diz a FAQ
-- [ ] Rever o selo "O mais escolhido" no plano Standard: só mantê-lo se houver dados que o provem
+- [ ] Switch to "tu" in login, sign-up, forgot and reset password, verify email, calculator, dashboard, pricing and `plan-display.tsx`
+- [ ] Decide what to do with the promised but unimplemented features: planting calendar, savings comparison, report export, AI planning, harvest forecasts and alerts. Today they are just flags in `src/lib/plans.ts`. The options are to implement them, mark them as "em breve" (coming soon) or remove them from the landing page and the plans page
+- [ ] Unify the plans: the `/pricing` page and the landing page's pricing section have different lists. Generate both from `PLAN_FEATURES`
+- [ ] Confirm whether the annual price (€39 and €79) exists in Stripe; if not, remove it
+- [ ] Confirm whether plant prices are really reviewed regularly, as the FAQ says
+- [ ] Review the "O mais escolhido" (Most popular) badge on the Standard plan: only keep it if there is data to back it up
 
-## Redesign das páginas internas
+## Inner pages redesign
 
-As páginas internas têm as cores novas mas o layout antigo: cartões brancos, ícones em quadrados e cores fixas (`bg-white`, `text-white`, `green-*`, `red-*`) em 22 sítios. Por ordem de impacto:
+The inner pages have the new colours but the old layout: white cards, icons in squares and hard-coded colours (`bg-white`, `text-white`, `green-*`, `red-*`) in 22 places. In order of impact:
 
-| Página | O que mudar |
+| Page | What to change |
 | --- | --- |
-| Calculadora (`calculator-client.tsx`) | Reutilizar o "talão" da landing como resumo fixo ao lado; quantidades com botões − / +; total grande com contagem animada; pesquisa de plantas em vez de `select` |
-| Resultado (`calculator/result/[id]`) | Talão completo, pronto a levar ao viveiro, com os botões Recalcular e Partilhar |
-| Dashboard | Gráfico de gastos por mês, como na landing; hortas guardadas em linhas, não em cartões; estado vazio com CTA para criar a primeira horta |
-| Login, registo e recuperação | Ecrã dividido: formulário sobre papel e painel verde-musgo com foto e uma frase |
-| Pricing (`/pricing`) | Reutilizar a secção de preços da landing em vez de manter uma versão própria |
-| Perfil e subscrição (sucesso, cancelamento) | Alinhar com o resto; a página de sucesso pode ter um momento animado curto |
-| Admin (`webhook-logs`) | Só os tokens; é uma ferramenta interna |
+| Calculator (`calculator-client.tsx`) | Reuse the landing page's "talão" (receipt) as a sticky summary on the side; quantities with − / + buttons; large total with animated count; plant search instead of a `select` |
+| Result (`calculator/result/[id]`) | Full receipt, ready to take to the garden centre, with the Recalcular (Recalculate) and Partilhar (Share) buttons |
+| Dashboard | Monthly spending chart, as on the landing page; saved gardens in rows, not cards; empty state with a CTA to create the first garden |
+| Login, sign-up and recovery | Split screen: form on paper and a moss-green panel with a photo and a sentence |
+| Pricing (`/pricing`) | Reuse the landing page's pricing section instead of keeping a separate version |
+| Profile and subscription (success, cancellation) | Align with the rest; the success page can have a short animated moment |
+| Admin (`webhook-logs`) | Tokens only; it is an internal tool |
 
-Na app, as animações devem durar 150 a 250 ms e servir para dar feedback, sem coreografias de entrada.
+In the app, animations should last 150 to 250 ms and serve as feedback, with no choreographed entrances.
 
-## Melhorias na landing
+## Landing page improvements
 
-A landing funciona em desktop e mobile. O que falta é acabamento e conteúdo próprio.
+The landing page works on desktop and mobile. What is missing is polish and original content.
 
-- [ ] Trocar as fotos do Unsplash por fotos próprias de varandas portuguesas e por capturas reais da app
-- [ ] Criar a imagem Open Graph, o favicon e o ícone da app com o novo símbolo (o `favicon.ico` ainda é o antigo)
-- [ ] Desenhar o logotipo final; o símbolo atual (semente com duas folhas) é provisório
-- [ ] Rever o espaço vazio no topo do hero em ecrãs altos (o conteúdo está alinhado em baixo)
-- [ ] Em mobile, o talão do hero fica por cima da foto; confirmar como fica a 360 px
-- [ ] Criar uma secção de prova social real quando houver utilizadores (números verdadeiros ou testemunhos com autorização)
-- [ ] Header da landing para quem tem sessão: hoje usa o `Header` da app, sem o estilo transparente sobre o hero
+- [ ] Replace the Unsplash photos with original photos of Portuguese balconies and real app screenshots
+- [ ] Create the Open Graph image, the favicon and the app icon with the new symbol (the `favicon.ico` is still the old one)
+- [ ] Design the final logo; the current symbol (a seed with two leaves) is temporary
+- [ ] Review the empty space at the top of the hero on tall screens (the content is bottom-aligned)
+- [ ] On mobile, the hero receipt sits on top of the photo; check how it looks at 360 px
+- [ ] Create a real social proof section once there are users (true numbers or testimonials with permission)
+- [ ] Landing page header for signed-in users: today it uses the app's `Header`, without the transparent style over the hero
 
-## Técnico
+## Technical
 
-- [ ] Imagens: passar de `<img>` para `next/image` e configurar `images.remotePatterns` (ou servir as fotos a partir de `public/`). O Biome avisa disto em 3 sítios
-- [ ] Biome: corrigir os avisos `useImportType` e as regras de acessibilidade (`lint/a11y`) que já existiam em `src/components/ui`
-- [ ] Idioma: existe o locale `en`, mas todo o texto está em português e fixo no código. Decidir se o inglês avança (extrair os textos) ou se se retira o `en`
-- [ ] `lang`: o `<html>` tem `pt` fixo e o layout do locale põe o `lang` num `div`. Passar o locale para o `<html>`
-- [ ] SEO: `metadata` por página (pricing, login), `sitemap.ts` e `robots.ts`
-- [ ] O Tailwind 4 já não usa o `tailwind.config.ts` (o tema está no `globals.css`). Apagá-lo para evitar confusão
-- [ ] Escolher um único gestor de pacotes: o projeto tem `bun.lock` e `package-lock.json`
-- [ ] O `docs/landing-page-design-brief.md` descreve o design antigo (Mini Horta); arquivá-lo ou atualizá-lo
-- [ ] A infraestrutura ainda usa os nomes antigos: base de dados `mini_horta` e containers `mini-horta-*`. Renomear obriga a migrar os dados
+- [ ] Images: move from `<img>` to `next/image` and configure `images.remotePatterns` (or serve the photos from `public/`). Biome warns about this in 3 places
+- [ ] Biome: fix the `useImportType` warnings and the accessibility rules (`lint/a11y`) that already existed in `src/components/ui`
+- [ ] Language: the `en` locale exists, but all text is in Portuguese and hard-coded. Decide whether English goes ahead (extract the strings) or `en` is removed
+- [ ] `lang`: the `<html>` has a hard-coded `pt` and the locale layout puts `lang` on a `div`. Pass the locale to `<html>`
+- [ ] SEO: per-page `metadata` (pricing, login), `sitemap.ts` and `robots.ts`
+- [ ] Tailwind 4 no longer uses `tailwind.config.ts` (the theme is in `globals.css`). Delete it to avoid confusion
+- [ ] Pick a single package manager: the project has `bun.lock` and `package-lock.json`
+- [ ] `docs/landing-page-design-brief.md` describes the old design (Mini Horta); archive or update it
+- [ ] The infrastructure still uses the old names: database `mini_horta` and containers `mini-horta-*`. Renaming requires migrating the data
 
-## Acessibilidade e performance
+## Accessibility and performance
 
-O movimento já respeita `prefers-reduced-motion`, mas faltam auditorias com medições.
+Motion already respects `prefers-reduced-motion`, but measured audits are still missing.
 
-- [ ] Medir o contraste dos textos com opacidade sobre o verde-musgo (`text-paper/60`, `/50`) e do laranja dos botões sobre o fundo; o alvo é WCAG AA
-- [ ] Testar a navegação só com teclado: menu mobile, FAQ e foco visível nos links da landing
-- [ ] O menu mobile não fecha com Esc nem prende o foco
-- [ ] Correr o Lighthouse em mobile: as fotos do hero têm 1200 px e não têm `srcset`, e o GSAP (com ScrollTrigger e SplitText) só é necessário na landing
+- [ ] Measure the contrast of semi-transparent text on moss green (`text-paper/60`, `/50`) and of the orange buttons on the background; the target is WCAG AA
+- [ ] Test keyboard-only navigation: mobile menu, FAQ and visible focus on the landing page links
+- [ ] The mobile menu does not close with Esc nor trap focus
+- [ ] Run Lighthouse on mobile: the hero photos are 1200 px and have no `srcset`, and GSAP (with ScrollTrigger and SplitText) is only needed on the landing page

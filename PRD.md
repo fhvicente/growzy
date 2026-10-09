@@ -1,317 +1,317 @@
-# PRD — Growzy: Templates, Lembretes, Previsões e IA
+# PRD — Growzy: Templates, Reminders, Forecasts and AI
 
-2 out 2026 · Flávio Vicente
+2 Oct 2026 · Flávio Vicente
 
-Este PRD transforma a Growzy de uma calculadora de uso único num assistente para a época inteira. O centro é o **motor espaço → horta**: a pessoa dá as medidas, a luz e a zona, e a Growzy diz quantas plantas cabem, o que comprar, quanto custa, quanto e quando regar, quando semear e colher, e se compensa. Por cima disso vêm preços reais, lembretes com meteorologia e, por fim, IA. O plano Grátis responde à pergunta de hoje; os pagos dão a época inteira e acompanham.
+This PRD turns Growzy from a single-use calculator into an assistant for the whole season. At its core is the **space → garden engine**: the person enters the measurements, the light and the zone, and Growzy says how many plants fit, what to buy, how much it costs, how much and when to water, when to sow and harvest, and whether it pays off. On top of that come real prices, weather-aware reminders and, finally, AI. The Free plan answers today's question; the paid plans cover the whole season and keep up with it.
 
-> Atualizado a 7 out 2026: acrescentada a Feature 0 (motor), os templates passam a ser inputs pré-preenchidos do motor, a tabela de planos e o faseamento foram alinhados. Spec técnica: `docs/superpowers/specs/2026-10-07-motor-horta-design.md`.
+> Updated 7 Oct 2026: added Feature 0 (engine), templates become pre-filled engine inputs, the plans table and the phasing were aligned. Technical spec: `docs/superpowers/specs/2026-10-07-motor-horta-design.md`.
 
-## Contexto e problema
+## Context and problem
 
-Hoje a Growzy calcula o custo de uma horta a partir de preços fixos nas tabelas `plants` e `products`. Há quatro problemas:
+Today Growzy calculates the cost of a garden from fixed prices in the `plants` and `products` tables. There are four problems:
 
-- **A ideia original não existe.** A calculadora não pede medidas, luz nem zona, e usa 5 plantas escritas no código. Não diz quantas plantas cabem nem quando regar.
-- **O cálculo está errado por defeito.** `src/app/api/calculator/calculate/route.ts` soma todos os produtos da base a qualquer cálculo, sejam ou não precisos para aquela horta.
-- **Os preços não têm fonte nem data.** O utilizador não tem razão para confiar no total, e o `PRODUCT.md` exige números em que a pessoa confie.
-- **Não há valor recorrente.** Um cálculo faz-se uma vez por época, por isso uma subscrição mensal não se justifica.
-- **A landing promete o que não existe.** "Planeamento com IA", "Previsões de colheita" e "Alertas personalizados" aparecem no Premium sem estarem construídos. Isto viola o princípio de copy honesta.
+- **The original idea doesn't exist.** The calculator doesn't ask for measurements, light or zone, and uses 5 plants hardcoded. It doesn't say how many plants fit or when to water.
+- **The calculation is wrong by default.** `src/app/api/calculator/calculate/route.ts` adds every product in the database to every calculation, whether or not that garden needs it.
+- **Prices have no source or date.** The user has no reason to trust the total, and `PRODUCT.md` requires numbers the person can trust.
+- **There is no recurring value.** A calculation is done once per season, so a monthly subscription isn't justified.
+- **The landing page promises what doesn't exist.** "Planeamento com IA" (AI planning), "Previsões de colheita" (harvest forecasts) and "Alertas personalizados" (personalised alerts) appear under Premium without being built. This violates the honest-copy principle.
 
-## Objetivos e métricas
+## Goals and metrics
 
-**Objetivos**
+**Goals**
 
-1. Dar ao utilizador um total em que confie, com o preço de cada item acompanhado da fonte e da data.
-2. Fazer o utilizador voltar à app durante a época inteira (março a outubro), não só antes da primeira compra.
-3. Justificar cada plano pago com valor que se repete todas as semanas.
+1. Give the user a total they trust, with each item's price shown alongside its source and date.
+2. Bring the user back to the app throughout the season (March to October), not just before the first purchase.
+3. Justify each paid plan with value that repeats every week.
 
-**Não-objetivos (nesta versão)**
+**Non-goals (in this version)**
 
-- Loja própria ou checkout de produtos.
-- Preços em tempo real obtidos por scraping.
-- Diagnóstico de pragas por fotografia.
-- App nativa: lembretes por email e web push chegam.
+- Own shop or product checkout.
+- Real-time prices obtained by scraping.
+- Pest diagnosis from photos.
+- Native app: email reminders and web push are enough.
 
-**Métricas**
+**Metrics**
 
-| Métrica | Como se mede | Meta |
+| Metric | How it's measured | Target |
 | --- | --- | --- |
-| Ativação | % de registos que guardam uma horta a partir de um template na 1.ª sessão | A definir após 4 semanas de baseline |
-| Retenção semanal | % de utilizadores ativos na semana 4 | A definir |
-| Conversão paga | % de Grátis que passam a Standard ou Premium em 30 dias | A definir |
-| Confiança no preço | Desvio mediano entre o total estimado e o gasto que o utilizador regista | Menos de 20% |
-| Churn sazonal | Cancelamentos entre novembro e fevereiro | Abaixo da média mensal da época |
+| Activation | % of sign-ups who save a garden from a template in the 1st session | To be set after 4 weeks of baseline |
+| Weekly retention | % of users active in week 4 | To be set |
+| Paid conversion | % of Free users who move to Standard or Premium within 30 days | To be set |
+| Price trust | Median deviation between the estimated total and the spend the user records | Under 20% |
+| Seasonal churn | Cancellations between November and February | Below the in-season monthly average |
 
-As metas a definir dependem de uma baseline que ainda não existe: os dados de uso atuais são de um único utilizador.
+The targets still to be set depend on a baseline that doesn't exist yet: current usage data comes from a single user.
 
-## Utilizadores e casos de uso
+## Users and use cases
 
-O público são pessoas em Portugal com varanda, terraço ou um pequeno quintal. Não são agrónomos e usam a app sobretudo no telemóvel, muitas vezes de pé, no viveiro ou na varanda.
+The audience is people in Portugal with a balcony, terrace or small backyard. They aren't agronomists and use the app mostly on their phone, often standing up, at the garden centre or on the balcony.
 
-| Perfil | Situação | O que precisa | Plano provável |
+| Profile | Situation | What they need | Likely plan |
 | --- | --- | --- | --- |
-| Principiante de varanda | 1–2 m², nunca plantou | Saber o que comprar e quanto custa | Grátis → Standard |
-| Cultivador regular | Terraço ou floreiras, 2.ª ou 3.ª época | Calendário, lembretes de rega e registo de gastos | Standard |
-| Horta de quintal | 4–20 m², várias culturas | Planeamento por canteiro, previsão de colheita e alertas de meteorologia | Premium |
+| Balcony beginner | 1–2 m², never planted | Know what to buy and how much it costs | Free → Standard |
+| Regular grower | Terrace or planters, 2nd or 3rd season | Calendar, watering reminders and spend tracking | Standard |
+| Backyard garden | 4–20 m², several crops | Per-bed planning, harvest forecast and weather alerts | Premium |
 
-**Casos de uso principais**
+**Main use cases**
 
-1. "Tenho 1 m² numa varanda virada a sul. O que planto e quanto gasto?" O utilizador escolhe um template e recebe a lista de compras com o total.
-2. "Diz-me quando regar." O utilizador recebe um lembrete que não aparece nos dias em que chove.
-3. "Quando vou colher os tomates?" A app mostra a janela prevista de colheita e a quantidade esperada.
-4. "Monta-me uma horta para 3 m² com meia sombra e €60 de orçamento." A IA propõe um plano, que o utilizador pode editar e guardar.
-5. "Valeu a pena?" A app compara o que o utilizador gastou com o valor do que colheu.
+1. "I have 1 m² on a south-facing balcony. What do I plant and how much will I spend?" The user picks a template and gets the shopping list with the total.
+2. "Tell me when to water." The user gets a reminder that doesn't show up on days when it rains.
+3. "When will I harvest the tomatoes?" The app shows the forecast harvest window and the expected quantity.
+4. "Set me up a garden for 3 m² with partial shade and a €60 budget." The AI proposes a plan, which the user can edit and save.
+5. "Was it worth it?" The app compares what the user spent with the value of what they harvested.
 
-## Estrutura de planos
+## Plan structure
 
-Cada plano pago acrescenta uma camada: o Standard acompanha a época e o Premium adapta-se à horta concreta do utilizador. Os preços mantêm-se (€4,99 e €9,99 por mês), e a landing só mostra uma feature depois de ela estar em produção.
+Each paid plan adds a layer: Standard follows the season and Premium adapts to the user's specific garden. Prices stay the same (€4,99 and €9,99 per month), and the landing page only shows a feature once it's in production.
 
-| Feature | Grátis | Standard (€4,99/mês · €39/ano) | Premium (€9,99/mês · €79/ano) |
+| Feature | Free | Standard (€4,99/month · €39/year) | Premium (€9,99/month · €79/year) |
 | --- | --- | --- | --- |
-| Motor espaço → horta (distribuição, lista de compras, custo) | Sim | Sim | Sim |
-| Hortas guardadas | 3 | Ilimitadas | Ilimitadas |
-| Rega calculada (litros, frequência, hora, gota-a-gota) | Mês atual | 12 meses | 12 meses + ajuste diário IPMA |
-| Calendário por zona | Mês atual + próximo passo | 12 meses | Igual |
-| Poupança e payback | Total da 1.ª época e payback | + 2.ª época e detalhe por cultura | Igual |
-| Lembretes (rega, sementeira) | — | Email, horário fixo | Ajustados ao IPMA, alertas de geada e calor |
-| Registo de gastos e colheitas | — | Sim | Sim + histórico de várias épocas |
-| Planeamento com IA | — | — | Com limite mensal |
-| Exportação | — | PDF da lista de compras | PDF da lista e do plano da época |
+| Space → garden engine (layout, shopping list, cost) | Yes | Yes | Yes |
+| Saved gardens | 3 | Unlimited | Unlimited |
+| Calculated watering (litres, frequency, time, drip) | Current month | 12 months | 12 months + daily IPMA adjustment |
+| Calendar by zone | Current month + next step | 12 months | Same |
+| Savings and payback | 1st season total and payback | + 2nd season and per-crop detail | Same |
+| Reminders (watering, sowing) | — | Email, fixed time | Adjusted to IPMA, frost and heat alerts |
+| Spend and harvest tracking | — | Yes | Yes + multi-season history |
+| AI planning | — | — | With monthly limit |
+| Export | — | Shopping list PDF | Shopping list and season plan PDF |
 
-Só aparece na landing e em `/pricing` o que já está em produção. Enquanto a Fase 3 não existir, o Premium aparece como "Em breve", sem botão de compra. As listas da landing, de `/pricing` e de `plan-display.tsx` saem de uma só constante em `src/lib/plans.ts`.
+Only what's already in production appears on the landing page and `/pricing`. Until Phase 3 exists, Premium appears as "Em breve" (Coming soon), with no buy button. The lists on the landing page, `/pricing` and `plan-display.tsx` all come from a single constant in `src/lib/plans.ts`.
 
-**Sazonalidade.** A maior parte das hortas de varanda para entre novembro e fevereiro, por isso é de esperar que as subscrições mensais sejam canceladas em novembro. Para o contrariar:
+**Seasonality.** Most balcony gardens stop between November and February, so monthly subscriptions can be expected to be cancelled in November. To counter this:
 
-- **Plano anual em destaque.** Na página de preços, o anual aparece como opção por defeito.
-- **Passe de época.** Pagamento único que cobre março a outubro, com preço a definir entre €25 e €30 no Standard.
-- **Uso no inverno.** Planear a próxima época, culturas de inverno (couves, favas, alhos) e o balanço da época que acabou.
+- **Annual plan featured.** On the pricing page, annual is the default option.
+- **Season pass.** One-off payment covering March to October, priced somewhere between €25 and €30 for Standard.
+- **Winter use.** Planning the next season, winter crops (cabbages, broad beans, garlic) and the review of the season just ended.
 
-## Feature 0 — Motor espaço → horta
+## Feature 0 — Space → garden engine
 
-O coração do produto. Todos os números saem de regras escritas e testadas, não de IA. Detalhe completo, fórmulas e testes na spec `docs/superpowers/specs/2026-10-07-motor-horta-design.md`.
+The heart of the product. Every number comes from written, tested rules, not from AI. Full detail, formulas and tests in the spec `docs/superpowers/specs/2026-10-07-motor-horta-design.md`.
 
-**Input:** tipo de espaço (vasos, canteiro elevado, terra), largura × comprimento em cm, luz (sol ≥6 h, meia-sombra 3–6 h, sombra <3 h), zona (litoral-norte, interior, sul), rega (regador ou gota-a-gota), culturas escolhidas (quantidade automática ou manual, planta ou semente) e o material que a pessoa já tem.
+**Input:** space type (pots, raised bed, ground), width × length in cm, light (sun ≥6 h, partial shade 3–6 h, shade <3 h), zone (litoral-norte, interior, sul), watering (watering can or drip), chosen crops (automatic or manual quantity, plant or seed) and the gear the person already has.
 
-**O que calcula**
+**What it calculates**
 
-| Saída | Regra (resumo) |
+| Output | Rule (summary) |
 | --- | --- |
-| Culturas compatíveis | Só entram as que aguentam a luz do espaço; as outras aparecem riscadas com o motivo |
-| Quantas cabem | Área útil (80% em vasos) dividida pelas culturas; ocupação = espaçamento² no canteiro, diâmetro do vaso² ou fração de floreira em vasos; teto por casa (`maxUseful`) |
-| Recipientes e substrato | Vaso mais pequeno ≥ volume mínimo da cultura, floreiras de 80 cm para culturas com espaçamento ≤ 25 cm; substrato em sacos de 50 L |
-| Custo | Intervalo (soma dos mínimos a soma dos máximos), só com o que esta horta precisa, sem o que a pessoa já tem |
-| Rega | ET0 por Hargreaves com normais climáticas do IPMA da zona × Kc (FAO-56) × fator de luz × área da planta; dias entre regas pela reserva de água do recipiente (1 a 7); litros por rega; hora; minutos do temporizador gota-a-gota |
-| Calendário | Meses de sementeira e transplante ajustados à zona; janela de colheita; o que fazer em cada mês |
-| Poupança | Colheita esperada × €/kg do supermercado − custo; 1.ª época e seguintes (sem duráveis); semanas até a horta se pagar, ou "não compensa", sem esconder |
+| Compatible crops | Only those that tolerate the space's light are included; the others appear struck through with the reason |
+| How many fit | Usable area (80% in pots) divided among the crops; footprint = spacing² in a bed, pot diameter² or planter fraction in pots; per-cell cap (`maxUseful`) |
+| Containers and substrate | Smallest pot ≥ the crop's minimum volume, 80 cm planters for crops with spacing ≤ 25 cm; substrate in 50 L bags |
+| Cost | Range (sum of minimums to sum of maximums), only with what this garden needs, minus what the person already has |
+| Watering | ET0 via Hargreaves with the zone's IPMA climate normals × Kc (FAO-56) × light factor × plant area; days between waterings from the container's water reserve (1 to 7); litres per watering; time; drip timer minutes |
+| Calendar | Sowing and transplant months adjusted to the zone; harvest window; what to do each month |
+| Savings | Expected harvest × supermarket €/kg − cost; 1st season and following ones (without durables); weeks until the garden pays for itself, or "não compensa" (doesn't pay off), without hiding it |
 
-**Dados:** um catálogo versionado em git (`src/lib/garden/catalog.ts`) com cerca de 30 culturas típicas de varanda portuguesa, material com preço, loja e data, e o clima por zona. Substitui as tabelas `plants` e `products`. Uma pessoa da área revê os valores antes do lançamento.
+**Data:** a git-versioned catalogue (`src/lib/garden/catalog.ts`) with around 30 crops typical of Portuguese balconies, gear with price, shop and date, and climate by zone. It replaces the `plants` and `products` tables. Someone from the field reviews the values before launch.
 
-**Critério de aceitação:** no telemóvel, uma varanda de 2 × 1 m com 3 culturas dá total, rega do mês e payback em menos de 1 segundo; a soma das linhas é igual ao total; o Grátis não recebe da API os dados que são do Standard.
+**Acceptance criterion:** on a phone, a 2 × 1 m balcony with 3 crops gives the total, the month's watering and payback in under 1 second; the sum of the lines equals the total; Free doesn't receive Standard-only data from the API.
 
-## Feature 1 — Preços reais
+## Feature 1 — Real prices
 
-Cada preço passa a ter um intervalo, uma fonte e uma data de verificação. A app mostra "€8–12 · verificado em out/2026" em vez de um valor único sem origem.
+Every price now has a range, a source and a verification date. The app shows "€8–12 · verificado em out/2026" (verified Oct 2026) instead of a single value with no origin.
 
-**Fontes, por fase**
+**Sources, by phase**
 
-1. **Recolha manual (MVP).** São cerca de 50 itens base: substrato, vasos, floreiras, sementes, plantas em tabuleiro, regador, pá, luvas e rega gota-a-gota. Os preços vêm de 4 a 6 lojas (por exemplo Leroy Merlin, AKI, Continente, Lidl e um viveiro local) e são revistos no início de cada época e a meio dela.
-2. **Gastos reportados.** Quando regista um gasto, o utilizador indica a loja e o preço que pagou. Com 5 ou mais registos por item e região (distrito), a app mostra o preço mediano.
-3. **Afiliados (fase posterior).** Os links para as lojas passam a ter código de afiliado onde existir programa. As regras e a eventual API de cada programa ficam por confirmar.
+1. **Manual collection (MVP).** Around 50 base items: substrate, pots, planters, seeds, plants in trays, watering can, trowel, gloves and drip irrigation. Prices come from 4 to 6 shops (for example Leroy Merlin, AKI, Continente, Lidl and a local garden centre) and are reviewed at the start of each season and halfway through.
+2. **Reported spend.** When recording a purchase, the user enters the shop and the price paid. With 5 or more records per item and region (district), the app shows the median price.
+3. **Affiliates (later phase).** Links to shops get an affiliate code where a programme exists. The rules and any API for each programme are still to be confirmed.
 
-**Requisitos**
+**Requirements**
 
-- Cada preço guarda mínimo, máximo, loja, URL, data de verificação e origem (`manual`, `reported` ou `affiliate`).
-- Um preço com mais de 180 dias aparece com o aviso "preço pode estar desatualizado".
-- Um painel de administração simples permite editar preços sem mexer no código.
-- Os gastos reportados são validados: um valor 3× acima ou abaixo da mediana fica de fora do cálculo.
-- O total da horta é apresentado como intervalo (soma dos mínimos a soma dos máximos), e a estimativa central usa a mediana.
+- Each price stores minimum, maximum, shop, URL, verification date and origin (`manual`, `reported` or `affiliate`).
+- A price older than 180 days shows the warning "preço pode estar desatualizado" (price may be out of date).
+- A simple admin panel lets prices be edited without touching the code.
+- Reported spend is validated: a value 3× above or below the median is left out of the calculation.
+- The garden total is shown as a range (sum of minimums to sum of maximums), and the central estimate uses the median.
 
-**Fora de âmbito:** scraping. Quebra sempre que a loja muda o site e costuma violar os termos de uso.
+**Out of scope:** scraping. It breaks whenever the shop changes its site and usually violates the terms of use.
 
-## Feature 2 — Templates por tamanho
+## Feature 2 — Templates by size
 
-> Com a Feature 0, a lista de compras por grupo, o «já tenho» e o cálculo de substrato passam para o motor. Um template passa a ser só um input pré-preenchido do motor (espaço, luz e culturas), que a pessoa abre e ajusta. Fica para depois da Fase 1.
+> With Feature 0, the grouped shopping list, «já tenho» (I already have it) and the substrate calculation move into the engine. A template becomes just a pre-filled engine input (space, light and crops) that the person opens and adjusts. Deferred until after Phase 1.
 
-O utilizador escolhe o espaço, a luz e o estilo, e recebe uma horta pronta a comprar.
+The user picks the space, light and style, and gets a garden ready to buy.
 
-**Templates iniciais (8)**
+**Initial templates (8)**
 
-| Template | Área | Luz | Exemplo de plantas | Plano |
+| Template | Area | Light | Example plants | Plan |
 | --- | --- | --- | --- | --- |
-| Varanda de ervas | 1 m² | Sol ou meia sombra | Manjericão, salsa, hortelã, cebolinho | Grátis |
-| Floreira de saladas | 1 floreira de 80 cm | Meia sombra | Alface, rúcula, rabanete | Grátis |
-| Varanda de verão | 2 m² | Sol pleno | Tomate-cereja, pimento, manjericão | Standard |
-| Terraço mediterrânico | 4 m² | Sol pleno | Tomate, curgete, beringela, ervas | Standard |
-| Horta vertical | Parede de 1×2 m | Sol ou meia sombra | Morangos, alface, ervas | Standard |
-| Canteiro elevado | 1,2×0,8 m | Sol pleno | Mistura rotativa por época | Standard |
-| Quintal pequeno | 10 m² | Sol pleno | Batata, feijão-verde, couve, cebola | Standard |
-| Horta de inverno | 2 m² | Qualquer | Couve, favas, alho, espinafre | Standard |
+| Herb balcony | 1 m² | Sun or partial shade | Basil, parsley, mint, chives | Free |
+| Salad planter | 1 planter of 80 cm | Partial shade | Lettuce, rocket, radish | Free |
+| Summer balcony | 2 m² | Full sun | Cherry tomato, pepper, basil | Standard |
+| Mediterranean terrace | 4 m² | Full sun | Tomato, courgette, aubergine, herbs | Standard |
+| Vertical garden | 1×2 m wall | Sun or partial shade | Strawberries, lettuce, herbs | Standard |
+| Raised bed | 1,2×0,8 m | Full sun | Seasonal rotating mix | Standard |
+| Small backyard | 10 m² | Full sun | Potato, green beans, cabbage, onion | Standard |
+| Winter garden | 2 m² | Any | Cabbage, broad beans, garlic, spinach | Standard |
 
-**Requisitos**
+**Requirements**
 
-- Um template define plantas e quantidades, recipientes (vasos, floreiras ou canteiro), substrato, ferramentas e rega.
-- O substrato é calculado em litros a partir do volume dos recipientes, usando os campos `pot_size_required` e `soil_amount_required` que já existem em `plants`.
-- A lista de compras divide-se em 4 grupos (plantas e sementes, recipientes e substrato, ferramentas, rega), e cada item mostra o intervalo de preço e a loja.
-- O utilizador marca o que já tem (por exemplo "já tenho regador"), esse item sai do total, e a escolha fica guardada para as hortas seguintes.
-- Um template pode ser editado depois de escolhido (trocar plantas, mudar quantidades) e guardado como horta do utilizador.
-- O plano Grátis vê todos os templates, mas os do Standard aparecem bloqueados, com o total visível e a lista completa escondida.
+- A template defines plants and quantities, containers (pots, planters or bed), substrate, tools and watering.
+- Substrate is calculated in litres from the container volume, using the `pot_size_required` and `soil_amount_required` fields that already exist in `plants`.
+- The shopping list is split into 4 groups (plants and seeds, containers and substrate, tools, watering), and each item shows the price range and the shop.
+- The user marks what they already have (for example "já tenho regador" — I already have a watering can), that item drops out of the total, and the choice is saved for future gardens.
+- A template can be edited after being chosen (swap plants, change quantities) and saved as the user's garden.
+- The Free plan sees all templates, but Standard ones appear locked, with the total visible and the full list hidden.
 
-**Critério de aceitação:** num template, o total é igual à soma das linhas da lista de compras, e nenhum produto que não esteja no template entra no total.
+**Acceptance criterion:** in a template, the total equals the sum of the shopping list lines, and no product that isn't in the template is included in the total.
 
-## Feature 3 — Calendário e lembretes
+## Feature 3 — Calendar and reminders
 
-A app passa a dizer o que fazer esta semana em cada horta. No Premium, os lembretes de rega têm em conta a previsão do IPMA, por isso não há aviso para regar num dia de chuva.
+The app now says what to do this week in each garden. On Premium, watering reminders take the IPMA forecast into account, so there's no prompt to water on a rainy day.
 
-**Calendário** (a versão estática por zona entra na Feature 0; aqui fica a vista «Esta semana» com as hortas e datas reais)
+**Calendar** (the static per-zone version comes in Feature 0; this covers the «Esta semana» (This week) view with real gardens and dates)
 
-- Cada planta tem janelas de sementeira, transplante e colheita por zona climática. Para começar chegam 3 zonas: Norte e litoral centro, Interior, e Sul e ilhas.
-- A zona é escolhida no perfil a partir do concelho.
-- A vista "Esta semana" lista as tarefas de todas as hortas: semear, transplantar, adubar e colher.
+- Each plant has sowing, transplant and harvest windows per climate zone. 3 zones are enough to start: North and central coast, Interior, and South and islands.
+- The zone is chosen in the profile from the municipality.
+- The "Esta semana" (This week) view lists the tasks for all gardens: sow, transplant, fertilise and harvest.
 
-**Lembretes**
+**Reminders**
 
-| Tipo | Standard | Premium |
+| Type | Standard | Premium |
 | --- | --- | --- |
-| Rega | Frequência calculada pelo motor para o mês (Feature 0) | Igual, mas o lembrete é cancelado com probabilidade de precipitação ≥ 70% e antecipado com máxima ≥ 32 °C |
-| Sementeira e transplante | No início de cada janela | Igual, com a data de cada horta |
-| Geada | — | Com mínima prevista ≤ 2 °C: "protege as plantas esta noite" |
-| Avisos IPMA | — | Amarelo ou superior para tempo quente, vento ou chuva no distrito |
-| Resumo semanal | Email à segunda-feira | Igual |
+| Watering | Frequency calculated by the engine for the month (Feature 0) | Same, but the reminder is cancelled when precipitation probability ≥ 70% and brought forward when the max ≥ 32 °C |
+| Sowing and transplant | At the start of each window | Same, with each garden's date |
+| Frost | — | With forecast min ≤ 2 °C: "protege as plantas esta noite" (protect your plants tonight) |
+| IPMA warnings | — | Yellow or higher for hot weather, wind or rain in the district |
+| Weekly summary | Email on Monday | Same |
 
-**Fonte dos dados meteorológicos.** A [API de dados abertos do IPMA](https://api.ipma.pt/) dá previsão diária a 5 dias por localidade, com `precipitaProb`, `tMin` e `tMax`, e avisos meteorológicos a 3 dias. Os termos obrigam a citar sempre a fonte, e o IPMA pede que se envie um email para `webmaster@ipma.pt` a descrever o uso. A app mostra "Dados: IPMA" junto de cada lembrete baseado em meteorologia.
+**Weather data source.** The [IPMA open data API](https://api.ipma.pt/) provides a 5-day daily forecast per location, with `precipitaProb`, `tMin` and `tMax`, and 3-day weather warnings. The terms require always citing the source, and IPMA asks that an email be sent to `webmaster@ipma.pt` describing the usage. The app shows "Dados: IPMA" (Data: IPMA) next to each weather-based reminder.
 
-**Requisitos técnicos**
+**Technical requirements**
 
-- Um job diário às 07:00 (hora de Lisboa) faz 1 pedido por localidade com utilizadores ativos, guarda a resposta em cache durante o dia e gera os lembretes.
-- Canais: email (SendGrid, já previsto no código) e web push. O utilizador escolhe os canais e a hora em que quer receber os lembretes.
-- Cada lembrete tem as ações "feito" e "adiar 1 dia". Marcar "feito" num lembrete de rega fica registado no histórico da horta.
-- Por defeito, não há mais de 1 notificação por dia por utilizador: os lembretes do dia são agrupados numa só.
+- A daily job at 07:00 (Lisbon time) makes 1 request per location with active users, caches the response for the day and generates the reminders.
+- Channels: email (SendGrid, already planned in the code) and web push. The user chooses the channels and the time they want to receive reminders.
+- Each reminder has the actions "feito" (done) and "adiar 1 dia" (snooze 1 day). Marking a watering reminder "feito" is recorded in the garden's history.
+- By default, there's no more than 1 notification per day per user: the day's reminders are grouped into one.
 
-## Feature 4 — Acompanhamento e previsão de colheita
+## Feature 4 — Tracking and harvest forecast
 
-A previsão de colheita usa regras simples e transparentes, sem modelo de machine learning na primeira versão. A data prevista vem da data de plantio somada aos dias até à colheita de cada planta, e a quantidade vem de um rendimento médio por planta. A app mostra sempre que se trata de uma estimativa.
+The harvest forecast uses simple, transparent rules, with no machine learning model in the first version. The forecast date is the planting date plus each plant's days to harvest, and the quantity comes from an average yield per plant. The app always makes clear that it's an estimate.
 
-**Registo (Standard)**
+**Tracking (Standard)**
 
-- O utilizador indica a data real em que plantou cada planta e se semeou ou transplantou.
-- Pode registar colheitas com data, planta e quantidade em gramas ou unidades.
-- Pode registar gastos com item, loja e valor, e estes dados alimentam os preços reportados da Feature 1.
+- The user enters the actual date they planted each plant and whether they sowed or transplanted.
+- They can record harvests with date, plant and quantity in grams or units.
+- They can record spend with item, shop and amount, and this data feeds the reported prices of Feature 1.
 
-**Previsão**
+**Forecast**
 
-| Saída | Standard | Premium | Cálculo |
+| Output | Standard | Premium | Calculation |
 | --- | --- | --- | --- |
-| Janela de colheita | Sim | Sim | Data de plantio + `days_to_harvest_min` a `days_to_harvest_max` |
-| Quantidade esperada | — | Sim | N.º de plantas × `yield_per_plant` (intervalo baixo–alto) |
-| Ajuste por meteorologia | — | Sim | A janela atrasa 1 dia por cada 3 dias com máxima abaixo de 15 °C (heurística a validar) |
-| Poupança projetada | — | Sim | Quantidade esperada × preço de supermercado por kg, menos o custo da horta |
-| Poupança real | — | Sim | Colheitas registadas × preço por kg, menos os gastos registados |
+| Harvest window | Yes | Yes | Planting date + `days_to_harvest_min` to `days_to_harvest_max` |
+| Expected quantity | — | Yes | No. of plants × `yield_per_plant` (low–high range) |
+| Weather adjustment | — | Yes | The window shifts back 1 day for every 3 days with a max below 15 °C (heuristic to be validated) |
+| Projected savings | — | Yes | Expected quantity × supermarket price per kg, minus the garden cost |
+| Actual savings | — | Yes | Recorded harvests × price per kg, minus recorded spend |
 
-**Requisitos**
+**Requirements**
 
-- A tabela `plants` passa a ter dias até à colheita (mínimo e máximo), rendimento por planta (baixo e alto) e preço de supermercado por kg com fonte e data.
-- Os valores de rendimento vêm de fontes agronómicas públicas e citadas. Com 3 ou mais épocas de dados, são recalibrados com as colheitas registadas pelos utilizadores.
-- O dashboard mostra uma linha do tempo da época: o que já foi colhido e o que está previsto.
-- O campo `estimated_savings` de `calculations` passa a ser calculado por estas regras (hoje tem valor por defeito `0`).
+- The `plants` table gains days to harvest (minimum and maximum), yield per plant (low and high) and supermarket price per kg with source and date.
+- Yield values come from public, cited agronomic sources. With 3 or more seasons of data, they are recalibrated with the harvests recorded by users.
+- The dashboard shows a season timeline: what has already been harvested and what is forecast.
+- The `estimated_savings` field of `calculations` is now calculated by these rules (today it defaults to `0`).
 
-## Feature 5 — Planeamento com IA (Premium)
+## Feature 5 — AI planning (Premium)
 
-A IA monta um plano de horta a partir de linguagem natural, mas não inventa plantas nem preços. Só pode escolher plantas e produtos que existem na base, e é o servidor que calcula o total com os preços da Feature 1.
+The AI builds a garden plan from natural language, but doesn't make up plants or prices. It can only choose plants and products that exist in the database, and the server calculates the total with the Feature 1 prices.
 
-**O que faz**
+**What it does**
 
-1. **Plano à medida.** O utilizador escreve, por exemplo, "3 m², varanda virada a nascente, meia sombra, €60, gosto de tomate e ervas". A IA devolve um plano estruturado com plantas, quantidades, recipientes e uma justificação curta para cada escolha. O plano abre no mesmo editor dos templates.
-2. **Perguntas sobre a horta.** "Porque é que as folhas do tomate estão amarelas?" A IA responde com o contexto da horta do utilizador (plantas, datas, última rega registada, meteorologia da semana).
-3. **Plano da próxima época.** No fim da época, a IA propõe a rotação de culturas e ajustes com base nas colheitas registadas.
+1. **Tailored plan.** The user writes, for example, "3 m², east-facing balcony, partial shade, €60, I like tomatoes and herbs". The AI returns a structured plan with plants, quantities, containers and a short rationale for each choice. The plan opens in the same editor as the templates.
+2. **Questions about the garden.** "Why are the tomato leaves yellow?" The AI answers with the context of the user's garden (plants, dates, last recorded watering, the week's weather).
+3. **Next season plan.** At the end of the season, the AI proposes crop rotation and adjustments based on the recorded harvests.
 
-**Desenho técnico**
+**Technical design**
 
-- A IA usa a API da Anthropic com tool use. A ferramenta `propose_plan` recebe apenas `plant_id`, `product_id` e quantidades, e o servidor rejeita qualquer id que não exista.
-- O pedido envia o catálogo filtrado (plantas compatíveis com a luz e a zona do utilizador), não a base inteira.
-- Modelo: Claude Sonnet 5.5 para o plano, e Claude Haiku 4.5 para as perguntas curtas.
-- O plano é validado depois de gerado: o total tem de ficar dentro do orçamento (+10%) e as plantas têm de caber na área (área por planta definida em `plants`). Se falhar, a IA tem 1 nova tentativa com o erro. Se falhar outra vez, a app mostra o template mais próximo.
-- Respostas sobre pragas ou doenças incluem sempre a nota "confirma num viveiro se o problema continuar".
+- The AI uses the Anthropic API with tool use. The `propose_plan` tool receives only `plant_id`, `product_id` and quantities, and the server rejects any id that doesn't exist.
+- The request sends the filtered catalogue (plants compatible with the user's light and zone), not the whole database.
+- Model: Claude Sonnet 5.5 for the plan, and Claude Haiku 4.5 for short questions.
+- The plan is validated after generation: the total must stay within budget (+10%) and the plants must fit in the area (area per plant defined in `plants`). If it fails, the AI gets 1 retry with the error. If it fails again, the app shows the closest template.
+- Answers about pests or diseases always include the note "confirma num viveiro se o problema continuar" (check with a garden centre if the problem persists).
 
-**Limites por utilizador Premium (proposta)**
+**Limits per Premium user (proposal)**
 
-| Uso | Limite mensal |
+| Usage | Monthly limit |
 | --- | --- |
-| Planos gerados | 10 |
-| Perguntas | 100 |
+| Plans generated | 10 |
+| Questions | 100 |
 
-Os limites servem para manter o custo por utilizador abaixo de uma fração dos €9,99. O valor certo só se fixa depois de medir os tokens por pedido no beta.
+The limits exist to keep the cost per user below a fraction of the €9,99. The right value is only set after measuring tokens per request in the beta.
 
-## Modelo de dados e arquitetura
+## Data model and architecture
 
-A horta passa a ser uma entidade própria, `gardens`, que guarda o input do motor. O resultado (quantidades, custo, rega, calendário, poupança) recalcula-se sempre a partir do input e do catálogo. Os dados agronómicos vivem no catálogo em git, não na base. Tudo continua em Postgres com Drizzle, sem serviços novos além do IPMA e da API da Anthropic.
+The garden becomes its own entity, `gardens`, which stores the engine input. The result (quantities, cost, watering, calendar, savings) is always recalculated from the input and the catalogue. Agronomic data lives in the git catalogue, not in the database. Everything stays in Postgres with Drizzle, with no new services beyond IPMA and the Anthropic API.
 
-| Tabela | Fase | Colunas principais |
+| Table | Phase | Main columns |
 | --- | --- | --- |
-| `gardens` | 0 (substitui `calculations`) | `user_id`, `name`, `input` (JSON do motor: espaço, luz, zona, rega, culturas, material que já tem) |
-| `plants`, `products` | 0 (removidas) | Substituídas pelo catálogo `src/lib/garden/catalog.ts` |
-| `prices` | 1 (se o catálogo deixar de chegar) | `item_slug`, `store`, `url`, `min`, `max`, `source` (manual/reported/affiliate), `checked_at`, `district` |
-| `garden_plantings` | 2 | `garden_id`, `crop_slug`, `planted_at`, `method` (semente/transplante): datas reais por cultura, para lembretes e previsão |
+| `gardens` | 0 (replaces `calculations`) | `user_id`, `name`, `input` (engine JSON: space, light, zone, watering, crops, gear already owned) |
+| `plants`, `products` | 0 (removed) | Replaced by the catalogue `src/lib/garden/catalog.ts` |
+| `prices` | 1 (if the catalogue is no longer enough) | `item_slug`, `store`, `url`, `min`, `max`, `source` (manual/reported/affiliate), `checked_at`, `district` |
+| `garden_plantings` | 2 | `garden_id`, `crop_slug`, `planted_at`, `method` (semente/transplante — seed/transplant): actual dates per crop, for reminders and forecast |
 | `expenses` | 2 | `user_id`, `garden_id`, `item_id`, `store`, `amount`, `paid_at` |
 | `harvests` | 2 | `garden_id`, `plant_id`, `quantity`, `unit` (g/un), `harvested_at` |
-| `tasks` | 2 | Ver `PRD-todo.md`; os lembretes são tarefas com `source` = `calendar` ou `weather` |
+| `tasks` | 2 | See `PRD-todo.md`; reminders are tasks with `source` = `calendar` or `weather` |
 | `ai_usage` | 3 | `user_id`, `month`, `plans`, `questions`, `tokens` |
 
-**Arquitetura**
+**Architecture**
 
-- **Gating por plano.** A configuração de `src/lib/plans.ts` lê `users.subscription_plan` e é chamada nas rotas da API. Esconder a feature só no frontend não chega.
-- **Cálculo.** Um motor em funções puras (`src/lib/garden`) corre só no servidor (`POST /api/garden/plan`). O que é pago é retirado da resposta no servidor (`redactForPlan`), nunca só escondido na UI.
-- **Jobs agendados.** Um cron diário gera os lembretes (IPMA) e um cron semanal envia o resumo. No Fly, isto pode ser uma máquina agendada ou um endpoint protegido chamado por cron externo.
-- **Migração.** `calculations`, `plants` e `products` estão vazias na base local; confirmar em produção antes de as remover na Fase 0 (se tiverem dados, exportar primeiro).
+- **Plan gating.** The configuration in `src/lib/plans.ts` reads `users.subscription_plan` and is called in the API routes. Hiding the feature only in the frontend isn't enough.
+- **Calculation.** An engine of pure functions (`src/lib/garden`) runs only on the server (`POST /api/garden/plan`). Paid data is stripped from the response on the server (`redactForPlan`), never just hidden in the UI.
+- **Scheduled jobs.** A daily cron generates the reminders (IPMA) and a weekly cron sends the summary. On Fly, this can be a scheduled machine or a protected endpoint called by an external cron.
+- **Migration.** `calculations`, `plants` and `products` are empty in the local database; confirm in production before removing them in Phase 0 (if they have data, export first).
 
-## Faseamento e roadmap
+## Phasing and roadmap
 
-As Fases 0 e 1 têm de estar concluídas antes de março de 2027, porque é quando a maioria das pessoas compra para a horta. As datas são uma proposta e assumem uma pessoa a desenvolver a tempo inteiro.
+Phases 0 and 1 must be done before March 2027, because that's when most people buy for their garden. The dates are a proposal and assume one person developing full-time.
 
-1. **Fase 0 · Motor espaço → horta** (out–nov 2026 · 2–3 semanas)
-    - Catálogo de culturas, material e clima por zona
-    - Motor: distribuição, lista de compras, rega, calendário e poupança, com testes
-    - Tabela `gardens`, rotas novas e remoção de `calculations`, `plants` e `products`
-    - `plans.ts` só com o que existe; landing e `/pricing` a partir da mesma constante; Premium «Em breve»
-    - ◆ Portão: testes do motor passam, total = soma das linhas, o Grátis não recebe dados do Standard
-2. **Fase 1 · Preços reais e templates** (dez 2026) — prazo imposto pela época
-    - Revisão dos dados do catálogo por alguém da área
-    - Preços verificados em 4 a 6 lojas, aviso aos 180 dias
-    - Templates como inputs pré-preenchidos
-    - ◆ Portão: catálogo revisto antes de março
-3. **Fase 2 · Lembretes e registo** (jan–fev 2027)
-    - Vista «Esta semana», tarefas (`PRD-todo.md`) e lembretes por email a partir do motor
-    - Registo de gastos e colheitas
-    - ◆ Portão: lembretes sem duplicados em 2 semanas de beta
-4. **Fase 3 · Premium** (mar–mai 2027)
-    - Rega ajustada ao IPMA (mesma fórmula, com tMin e tMax da previsão e precipitação prevista), alertas de geada e calor
-    - Planeamento com IA em beta, com limites mensais
-    - ◆ Portão: Premium compra-se só depois de existir
+1. **Phase 0 · Space → garden engine** (Oct–Nov 2026 · 2–3 weeks)
+    - Catalogue of crops, gear and climate by zone
+    - Engine: layout, shopping list, watering, calendar and savings, with tests
+    - `gardens` table, new routes and removal of `calculations`, `plants` and `products`
+    - `plans.ts` with only what exists; landing page and `/pricing` from the same constant; Premium «Em breve» (Coming soon)
+    - ◆ Gate: engine tests pass, total = sum of lines, Free doesn't receive Standard data
+2. **Phase 1 · Real prices and templates** (Dec 2026) — deadline set by the season
+    - Review of the catalogue data by someone from the field
+    - Prices verified at 4 to 6 shops, warning at 180 days
+    - Templates as pre-filled inputs
+    - ◆ Gate: catalogue reviewed before March
+3. **Phase 2 · Reminders and tracking** (Jan–Feb 2027)
+    - «Esta semana» (This week) view, tasks (`PRD-todo.md`) and email reminders from the engine
+    - Spend and harvest tracking
+    - ◆ Gate: no duplicate reminders over 2 weeks of beta
+4. **Phase 3 · Premium** (Mar–May 2027)
+    - Watering adjusted to IPMA (same formula, with forecast tMin and tMax and forecast precipitation), frost and heat alerts
+    - AI planning in beta, with monthly limits
+    - ◆ Gate: Premium can only be bought once it exists
 
-Cada fase só começa depois de o portão da fase anterior estar cumprido.
+Each phase only starts once the previous phase's gate has been met.
 
-## Riscos e questões em aberto
+## Risks and open questions
 
-| Risco | Impacto | Mitigação |
+| Risk | Impact | Mitigation |
 | --- | --- | --- |
-| Preços manuais ficam desatualizados | Total deixa de ser confiável | Aviso aos 180 dias, revisão 2× por época, gastos reportados como segunda fonte |
-| Poucos gastos reportados por distrito | Mediana regional nunca aparece | Mínimo de 5 registos e, abaixo disso, mostrar a mediana nacional |
-| Churn no inverno | Receita cai entre novembro e fevereiro | Anual em destaque, passe de época, culturas de inverno |
-| Custo da IA acima do previsto | Margem do Premium negativa | Limites mensais, Haiku nas perguntas, medição no beta antes do lançamento |
-| IA dá conselho errado sobre pragas | Perda de confiança | Respostas presas ao contexto da horta e nota para confirmar num viveiro |
-| Previsão de colheita falha muito | Expectativa frustrada | Mostrar intervalos e recalibrar com as colheitas registadas |
-| API do IPMA indisponível | Lembretes ficam sem ajuste | Usar a frequência fixa (comportamento Standard) e avisar "sem dados meteorológicos hoje" |
+| Manual prices go out of date | Total stops being trustworthy | Warning at 180 days, review 2× per season, reported spend as a second source |
+| Few reported purchases per district | Regional median never appears | Minimum of 5 records and, below that, show the national median |
+| Winter churn | Revenue drops between November and February | Annual featured, season pass, winter crops |
+| AI cost higher than expected | Negative Premium margin | Monthly limits, Haiku for questions, measurement in beta before launch |
+| AI gives wrong pest advice | Loss of trust | Answers tied to the garden context and a note to check with a garden centre |
+| Harvest forecast is way off | Frustrated expectations | Show ranges and recalibrate with recorded harvests |
+| IPMA API unavailable | Reminders lose their adjustment | Use the fixed frequency (Standard behaviour) and warn "sem dados meteorológicos hoje" (no weather data today) |
 
-**Questões em aberto**
+**Open questions**
 
-- [ ] Preço do passe de época: €25 ou €30?
-- [ ] Quais as lojas de referência para a recolha manual, e quem faz a recolha?
-- [ ] Que fonte agronómica usar para rendimentos e dias até à colheita?
-- [ ] Bastam 3 zonas climáticas, ou são precisas mais?
-- [ ] Que lojas portuguesas têm programa de afiliados com API?
-- [ ] O Grátis fica com 3 hortas ou passa a 1, agora que existem templates?
-- [ ] O web push entra no MVP, ou começamos só com email?
-- [ ] Enviar o email de registo de uso ao IPMA (`webmaster@ipma.pt`).
+- [ ] Season pass price: €25 or €30?
+- [ ] Which reference shops for manual collection, and who does the collecting?
+- [ ] Which agronomic source to use for yields and days to harvest?
+- [ ] Are 3 climate zones enough, or are more needed?
+- [ ] Which Portuguese shops have an affiliate programme with an API?
+- [ ] Does Free keep 3 gardens or go down to 1, now that templates exist?
+- [ ] Does web push go into the MVP, or do we start with email only?
+- [ ] Send the usage registration email to IPMA (`webmaster@ipma.pt`).
 
-## Fontes
+## Sources
 
-- [IPMA — API de dados abertos](https://api.ipma.pt/): previsão diária por localidade, avisos meteorológicos e termos de uso.
-- Código da Growzy: `src/lib/schema.ts`, `src/app/api/calculator/calculate/route.ts`, `src/components/landing/pricing-section.tsx` e `PRODUCT.md`.
+- [IPMA — open data API](https://api.ipma.pt/): daily forecast per location, weather warnings and terms of use.
+- Growzy code: `src/lib/schema.ts`, `src/app/api/calculator/calculate/route.ts`, `src/components/landing/pricing-section.tsx` and `PRODUCT.md`.

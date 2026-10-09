@@ -2,29 +2,29 @@
 
 ## Register
 
-brand (landing) · product (app shell: calculadora, dashboard, auth)
+brand (landing) · product (app shell: calculator, dashboard, auth)
 
 ## Users
 
-Pessoas em Portugal que querem começar ou crescer uma horta em varanda, terraço ou pequeno quintal. Não são agrónomos. Abrem a Growzy antes de ir ao viveiro, muitas vezes no telemóvel, para saber quanto vão gastar e o que cabe no espaço.
+People in Portugal who want to start or grow a vegetable garden on a balcony, terrace or small backyard. They are not agronomists. They open Growzy before going to the garden centre, often on their phone, to find out how much they will spend and what fits in the space.
 
 ## Product Purpose
 
-Growzy (grow + easy) calcula o custo de uma mini horta antes da primeira compra, guarda os cálculos e acompanha os gastos num dashboard. Sucesso: a pessoa sai com uma lista e um valor em que confia, e volta para planear a próxima época.
+Growzy (grow + easy) calculates the cost of a mini vegetable garden before the first purchase, saves the calculations and tracks spending in a dashboard. Success: the person leaves with a list and a figure they trust, and comes back to plan the next season.
 
 ## Brand Personality
 
-Prático, solarengo, confiante. Fala como um vizinho que já cultiva há anos: direto, sem jargão, com humor seco. Português europeu, trata por "tu".
+Practical, sunny, confident. Talks like a neighbour who has been growing vegetables for years: direct, jargon-free, with dry humour. European Portuguese, addresses the user as "tu" (informal you).
 
 ## Anti-references
 
-- Landing SaaS genérica: gradiente verde claro, badge "Premium", cards de ícone + título + texto em grelha.
-- Prova social inventada (testemunhos falsos, "milhares de utilizadores", 5 estrelas).
-- Estética "eco" clichê: folhinhas clip-art, verde-lima pastel, tudo arredondado e fofo.
+- Generic SaaS landing page: light green gradient, "Premium" badge, icon + title + text cards in a grid.
+- Made-up social proof (fake testimonials, "milhares de utilizadores" (thousands of users), 5 stars).
+- Clichéd "eco" aesthetic: clip-art leaves, pastel lime green, everything rounded and cutesy.
 
 ## Strategic Principles
 
-- Copy honesta: só promete o que a app faz hoje. Números mostrados são exemplos e dizem-no.
-- O cálculo é o herói: mostrar números reais cedo, não adjetivos.
-- Mobile primeiro: usado de pé, à luz do dia, numa varanda ou num viveiro.
-- Acessibilidade: WCAG AA, `prefers-reduced-motion` desliga coreografias.
+- Honest copy: only promise what the app does today. Numbers shown are examples and say so.
+- The calculation is the hero: show real numbers early, not adjectives.
+- Mobile first: used standing up, in daylight, on a balcony or in a garden centre.
+- Accessibility: WCAG AA, `prefers-reduced-motion` turns off choreographed animations.

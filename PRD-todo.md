@@ -1,88 +1,88 @@
-# PRD — Growzy: Tarefas da horta (to-do)
+# PRD — Growzy: Garden tasks (to-do)
 
-6 out 2026 · Flávio Vicente
+6 Oct 2026 · Flávio Vicente
 
-Uma lista de tarefas por horta: "regar os tomates", "comprar substrato", "semear alface". É a primeira coisa na Growzy que faz a pessoa voltar durante a época e não só antes da primeira compra. Também é a base onde a Feature 3 do `PRD.md` (calendário e lembretes) vai assentar mais tarde: um lembrete passa a ser só uma tarefa criada pela app.
+A task list per garden: "regar os tomates" (water the tomatoes), "comprar substrato" (buy potting soil), "semear alface" (sow lettuce). It is the first thing in Growzy that brings people back during the season and not only before the first purchase. It is also the foundation that Feature 3 of `PRD.md` (calendar and reminders) will build on later: a reminder becomes just a task created by the app.
 
-## Contexto e problema
+## Context and problem
 
-- **Hoje não há motivo para voltar à app.** Fazes o cálculo, guardas e acabou. O dashboard (`src/app/[locale]/(protected)/dashboard/page.tsx`) ainda mostra dados fictícios.
-- **O `PRD.md` prevê uma tabela `reminders` e uma vista "Esta semana"** (Fase 2, jan–fev 2027). Se o to-do for construído à parte, ficamos com duas listas de "coisas para fazer". Este PRD junta as duas: há uma só tabela `tasks`, e os lembretes automáticos entram nela mais tarde.
-- **Ainda não existe a entidade horta.** Uma horta guardada é uma linha de `calculations`. A tabela `gardens` só chega na Fase 1 do `PRD.md`. Por isso, a tarefa liga-se por agora a `calculations.id` e a ligação é opcional.
+- **Today there is no reason to come back to the app.** You run the calculation, save it and that's it. The dashboard (`src/app/[locale]/(protected)/dashboard/page.tsx`) still shows fake data.
+- **`PRD.md` plans a `reminders` table and a "Esta semana" (This week) view** (Phase 2, Jan–Feb 2027). If the to-do is built separately, we end up with two lists of "things to do". This PRD merges them: there is a single `tasks` table, and automatic reminders go into it later.
+- **The garden entity does not exist yet.** A saved garden is a row in `calculations`. The `gardens` table only arrives in Phase 1 of `PRD.md`. So for now the task links to `calculations.id` and the link is optional.
 
-## Objetivos
+## Goals
 
-1. Dar um motivo para abrir a app pelo menos uma vez por semana durante a época.
-2. Ter a estrutura de dados que os lembretes automáticos do `PRD.md` vão usar, sem a refazer depois.
-3. Construir em menos de 1 semana, sem dependências novas.
+1. Give a reason to open the app at least once a week during the season.
+2. Have the data structure that the automatic reminders in `PRD.md` will use, without redoing it later.
+3. Build it in under 1 week, with no new dependencies.
 
-**Não-objetivos (nesta versão)**
+**Non-goals (in this version)**
 
-- Notificações por email ou push. O código não tem nenhum serviço de email (o `PRD.md` diz que o SendGrid já está previsto, mas não há nada em `src/` nem no `package.json`). Fica para a Fase 2.
-- Tarefas geradas automaticamente a partir do calendário ou da meteorologia.
-- Subtarefas, etiquetas, prioridades, anexos, partilha com outras pessoas.
-- Recorrência complexa (dias da semana, "último domingo do mês"). Só "repetir a cada N dias".
+- Email or push notifications. The code has no email service (`PRD.md` says SendGrid is already planned, but there is nothing in `src/` or in `package.json`). Deferred to Phase 2.
+- Tasks generated automatically from the calendar or the weather.
+- Subtasks, tags, priorities, attachments, sharing with other people.
+- Complex recurrence (weekdays, "last Sunday of the month"). Only "repeat every N days".
 
-## Utilizadores e casos de uso
+## Users and use cases
 
-As mesmas pessoas do `PRODUCT.md`: hortas de varanda ou de terraço, no telemóvel, muitas vezes de pé.
+The same people as in `PRODUCT.md`: balcony or terrace gardens, on the phone, often standing up.
 
-1. **"Tenho de comprar o que falta."** Depois do cálculo, a pessoa cria tarefas de compra a partir da lista ("comprar 20 L de substrato").
-2. **"Rego de 2 em 2 dias."** Cria "Regar varanda", que se repete a cada 2 dias. Quando a marca como feita, aparece a próxima.
-3. **"O que tenho para fazer hoje?"** Abre a app e vê as tarefas de hoje e as atrasadas no topo.
-4. **"Já semeei?"** As tarefas feitas ficam no histórico da horta, com data.
+1. **"I need to buy what's missing."** After the calculation, the person creates shopping tasks from the list ("comprar 20 L de substrato" (buy 20 L of potting soil)).
+2. **"I water every 2 days."** Creates "Regar varanda" (Water balcony), which repeats every 2 days. When marked as done, the next one appears.
+3. **"What do I have to do today?"** Opens the app and sees today's and overdue tasks at the top.
+4. **"Have I sown yet?"** Completed tasks stay in the garden's history, with a date.
 
-## Requisitos funcionais
+## Functional requirements
 
-**Tarefa**
+**Task**
 
-| Campo | Obrigatório | Notas |
+| Field | Required | Notes |
 | --- | --- | --- |
-| Título | Sim | Até 120 caracteres |
-| Horta | Não | Uma das hortas guardadas, ou "Geral" |
-| Data | Não | Só dia, sem hora. Sem data, a tarefa fica em "Sem data" |
-| Repetir a cada N dias | Não | 1 a 60. Só pode ser definido se houver data |
-| Nota | Não | Até 500 caracteres |
+| Title | Yes | Up to 120 characters |
+| Garden | No | One of the saved gardens, or "Geral" (General) |
+| Date | No | Day only, no time. Without a date, the task goes into "Sem data" (No date) |
+| Repeat every N days | No | 1 to 60. Can only be set if there is a date |
+| Note | No | Up to 500 characters |
 
-**Comportamento**
+**Behaviour**
 
-- Marcar como feita guarda `done_at`. Se a tarefa se repete, é criada a próxima com data = **dia em que foi feita** + N. Exemplo: rega de 2 em 2 dias com data dia 10, feita só no dia 12, passa para dia 14 e não para dia 12. É assim que a rega funciona na prática.
-- Desmarcar uma tarefa feita volta a pô-la pendente. Se já tinha gerado a próxima e essa ainda não foi feita, a próxima é apagada, para não ficar repetida.
-- Apagar uma tarefa que se repete apaga só aquela. Para parar a repetição, edita-se a tarefa e tira-se o "repetir".
-- Apagar uma horta (`calculations`) passa as tarefas dela para "Geral". Não as apaga.
+- Marking as done stores `done_at`. If the task repeats, the next one is created with date = **day it was done** + N. Example: watering every 2 days dated the 10th, done only on the 12th, moves to the 14th and not the 12th. That is how watering works in practice.
+- Unchecking a completed task makes it pending again. If it had already generated the next one and that one is not done yet, the next one is deleted, so it is not duplicated.
+- Deleting a repeating task deletes only that one. To stop the repetition, edit the task and remove the "repetir" (repeat).
+- Deleting a garden (`calculations`) moves its tasks to "Geral" (General). It does not delete them.
 
-**Vistas**
+**Views**
 
-- **Página `/tasks`** (nova entrada "Tarefas" no `header.tsx`). Grupos por esta ordem: Atrasadas, Hoje, Próximos 7 dias, Mais tarde, Sem data. As feitas ficam escondidas num "Feitas (12)" que se abre.
-- **Filtro por horta**, por cima da lista.
-- **Criação rápida:** um campo no topo com o título e Enter. A data, a horta e a repetição ficam num detalhe opcional. No telemóvel, cria-se uma tarefa com 1 campo e 1 toque.
-- **Dashboard:** um cartão "Hoje" com as tarefas atrasadas e de hoje (máximo 5) e um link para `/tasks`.
-- **Resultado do cálculo** (`calculator/result/[id]`): um botão "Criar tarefas de compra" que cria uma tarefa por produto da lista, ligadas à horta e sem data. Isto só faz sentido depois de a Fase 0 do `PRD.md` corrigir o cálculo. Até lá a lista inclui todos os produtos da base.
+- **`/tasks` page** (new "Tarefas" (Tasks) entry in `header.tsx`). Groups in this order: Atrasadas (Overdue), Hoje (Today), Próximos 7 dias (Next 7 days), Mais tarde (Later), Sem data (No date). Completed tasks are hidden in an expandable "Feitas (12)" (Done (12)).
+- **Filter by garden**, above the list.
+- **Quick add:** a field at the top with the title and Enter. Date, garden and repetition go in an optional detail. On the phone, a task is created with 1 field and 1 tap.
+- **Dashboard:** a "Hoje" (Today) card with overdue and today's tasks (max 5) and a link to `/tasks`.
+- **Calculation result** (`calculator/result/[id]`): a "Criar tarefas de compra" (Create shopping tasks) button that creates one task per product in the list, linked to the garden and with no date. This only makes sense after Phase 0 of `PRD.md` fixes the calculation. Until then the list includes every product in the database.
 
-**Texto da UI** (português europeu, trata por "tu", como no `PRODUCT.md`)
+**UI copy** (European Portuguese, addresses the user as "tu", as in `PRODUCT.md`)
 
-- Lista vazia: "Nada para fazer. Aproveita a sombra."
-- Atrasada: "atrasada 2 dias", e não um vermelho alarmante.
-- Repetição: "repete a cada 2 dias".
+- Empty list: "Nada para fazer. Aproveita a sombra." (Nothing to do. Enjoy the shade.)
+- Overdue: "atrasada 2 dias" (2 days overdue), not an alarming red.
+- Repetition: "repete a cada 2 dias" (repeats every 2 days).
 
-## Planos
+## Plans
 
-**Proposta: as tarefas manuais existem em todos os planos.** A regra do `PRD.md` é "o grátis calcula, o pago acompanha". Mas um to-do manual sem lembretes é barato de manter e é o que traz a pessoa de volta: só se converte quem volta. O que se paga é a app fazer o trabalho por ti.
+**Proposal: manual tasks exist on all plans.** The rule in `PRD.md` is "free calculates, paid tracks". But a manual to-do without reminders is cheap to maintain and is what brings people back: only those who come back convert. What you pay for is the app doing the work for you.
 
-| | Grátis | Standard | Premium |
+| | Free | Standard | Premium |
 | --- | --- | --- | --- |
-| Tarefas manuais | Até 20 pendentes | Ilimitadas | Ilimitadas |
-| Repetição a cada N dias | Sim | Sim | Sim |
-| Tarefas de compra a partir do cálculo | Sim | Sim | Sim |
-| Tarefas automáticas do calendário (Fase 2 do `PRD.md`) | — | Sim | Sim |
-| Lembrete por email (Fase 2) | — | Sim | Sim |
-| Rega ajustada ao IPMA (Fase 3) | — | — | Sim |
+| Manual tasks | Up to 20 open | Unlimited | Unlimited |
+| Repeat every N days | Yes | Yes | Yes |
+| Shopping tasks from the calculation | Yes | Yes | Yes |
+| Automatic calendar tasks (Phase 2 of `PRD.md`) | — | Yes | Yes |
+| Email reminder (Phase 2) | — | Yes | Yes |
+| Watering adjusted to IPMA (Phase 3) | — | — | Yes |
 
-O limite de 20 entra em `PlanFeatures` (`src/lib/plans.ts`) como `maxOpenTasks`, e é verificado na rota de criação, do mesmo modo que `checkPlantLimit` em `src/lib/plan-limits.ts`.
+The limit of 20 goes into `PlanFeatures` (`src/lib/plans.ts`) as `maxOpenTasks`, and is checked in the create route, the same way as `checkPlantLimit` in `src/lib/plan-limits.ts`.
 
-## Modelo de dados
+## Data model
 
-Uma tabela nova em `src/lib/schema.ts`, com uma migração Drizzle.
+A new table in `src/lib/schema.ts`, with a Drizzle migration.
 
 ```ts
 export const tasks = pgTable(
@@ -97,7 +97,7 @@ export const tasks = pgTable(
 		repeatEveryDays: integer("repeat_every_days"),
 		source: varchar("source", { length: 20 }).default("manual").notNull(), // manual | shopping | calendar | weather
 		doneAt: timestamp("done_at"),
-		nextTaskId: integer("next_task_id"), // a cópia criada ao concluir; permite desfazer
+		nextTaskId: integer("next_task_id"), // the copy created on completion; allows undo
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 		updatedAt: timestamp("updated_at").defaultNow().$onUpdate(() => new Date()).notNull(),
 	},
@@ -107,82 +107,82 @@ export const tasks = pgTable(
 );
 ```
 
-- `source` existe já para que os lembretes automáticos do `PRD.md` sejam tarefas com `source = 'calendar'` ou `'weather'`. A tabela `reminders` prevista no `PRD.md` deixa de ser precisa.
-- `calculationId` passa a `gardenId` quando a tabela `gardens` existir. A migração da Fase 1 do `PRD.md` converte uma coluna na outra.
-- Restrições na base de dados: `CHECK (repeat_every_days BETWEEN 1 AND 60)` e `CHECK (repeat_every_days IS NULL OR due_on IS NOT NULL)`.
+- `source` exists already so that the automatic reminders in `PRD.md` are tasks with `source = 'calendar'` or `'weather'`. The `reminders` table planned in `PRD.md` is no longer needed.
+- `calculationId` becomes `gardenId` once the `gardens` table exists. The Phase 1 migration in `PRD.md` converts one column into the other.
+- Database constraints: `CHECK (repeat_every_days BETWEEN 1 AND 60)` and `CHECK (repeat_every_days IS NULL OR due_on IS NOT NULL)`.
 
 ## API
 
-Segue o padrão de `src/app/api/calculations/route.ts`: `getSessionUser`, resposta `{ ok, data }` e 401 sem sessão.
+Follows the pattern of `src/app/api/calculations/route.ts`: `getSessionUser`, `{ ok, data }` response and 401 without a session.
 
-| Rota | Faz |
+| Route | Does |
 | --- | --- |
-| `GET /api/tasks?calculationId=&status=open\|done` | Lista as tarefas do utilizador |
-| `POST /api/tasks` | Cria uma tarefa. Verifica o limite do plano |
-| `POST /api/tasks/bulk` | Cria as tarefas de compra a partir de um cálculo (`{ calculationId }`) |
-| `PATCH /api/tasks/[id]` | Edita a tarefa, ou marca/desmarca como feita (`{ done: true }`) |
-| `DELETE /api/tasks/[id]` | Apaga a tarefa |
+| `GET /api/tasks?calculationId=&status=open\|done` | Lists the user's tasks |
+| `POST /api/tasks` | Creates a task. Checks the plan limit |
+| `POST /api/tasks/bulk` | Creates the shopping tasks from a calculation (`{ calculationId }`) |
+| `PATCH /api/tasks/[id]` | Edits the task, or marks/unmarks it as done (`{ done: true }`) |
+| `DELETE /api/tasks/[id]` | Deletes the task |
 
-**Segurança**
+**Security**
 
-- Todas as queries filtram por `user_id` da sessão. Um `id` de outra pessoa devolve 404, não 403.
-- Ao criar ou editar, `calculationId` tem de pertencer ao utilizador.
-- O título e a nota são validados no servidor (tamanho, não vazios) e mostrados como texto, nunca como HTML.
-- Concluir uma tarefa que se repete faz duas escritas (marcar como feita e criar a próxima) numa só transação, para que um duplo toque não crie duas cópias. Se a tarefa já tem `done_at`, o pedido não faz nada.
+- All queries filter by the session's `user_id`. Another person's `id` returns 404, not 403.
+- On create or edit, `calculationId` must belong to the user.
+- Title and note are validated on the server (length, non-empty) and rendered as text, never as HTML.
+- Completing a repeating task does two writes (mark as done and create the next one) in a single transaction, so a double tap does not create two copies. If the task already has `done_at`, the request does nothing.
 
-**"Hoje" em que fuso?** Em `Europe/Lisbon`. O público é português, e os Açores ficam uma hora atrás, o que só afeta tarefas por volta da meia-noite. Se for preciso, mais tarde passa-se a usar o fuso do browser.
+**"Today" in which time zone?** In `Europe/Lisbon`. The audience is Portuguese, and the Azores are one hour behind, which only affects tasks around midnight. If needed, the browser's time zone can be used later.
 
-## Métricas
+## Metrics
 
-| Métrica | Como se mede | Meta |
+| Metric | How it is measured | Target |
 | --- | --- | --- |
-| Adoção | % de utilizadores ativos com pelo menos 1 tarefa criada | A definir após 4 semanas |
-| Regresso semanal | % de quem tem tarefas e abre a app em 3 das 4 semanas seguintes | A definir |
-| Conclusão | Tarefas feitas ÷ tarefas com data já passada | Acima de 50% |
-| Limite do Grátis | % de utilizadores Grátis que chegam às 20 pendentes | Se for acima de 10%, rever o limite |
+| Adoption | % of active users with at least 1 task created | To be set after 4 weeks |
+| Weekly return | % of those with tasks who open the app in 3 of the following 4 weeks | To be set |
+| Completion | Tasks done ÷ tasks with a past date | Above 50% |
+| Free limit | % of Free users who reach 20 open tasks | If above 10%, review the limit |
 
-Para medir isto chegam queries à tabela `tasks` e ao `sessions.updatedAt`. Não é preciso ferramenta de analytics nova.
+Queries on the `tasks` table and `sessions.updatedAt` are enough to measure this. No new analytics tool is needed.
 
-## Faseamento
+## Phasing
 
-Encaixa antes da Fase 1 do `PRD.md`, ou em paralelo com ela. Não depende de templates nem de preços.
+Fits before Phase 1 of `PRD.md`, or in parallel with it. Does not depend on templates or prices.
 
-1. **v1 · To-do manual** (out 2026 · ~1 semana)
-    - Tabela `tasks`, migração e rotas da API
-    - Página `/tasks`, entrada no header e cartão "Hoje" no dashboard
-    - Repetição a cada N dias e limite do Grátis
-    - ◆ Critério para avançar: concluir e desfazer uma tarefa que se repete não deixa cópias repetidas nem órfãs
-2. **v1.1 · Tarefas de compra** (depois da Fase 0 do `PRD.md`)
-    - Botão "Criar tarefas de compra" no resultado do cálculo
-3. **v2 · Tarefas automáticas** (= Fase 2 do `PRD.md`, jan–fev 2027)
-    - O calendário por zona cria tarefas com `source = 'calendar'`
-    - Email diário com as tarefas de hoje. Implica escolher e integrar um serviço de email
-4. **v3 · Meteorologia** (= Fase 3 do `PRD.md`)
-    - As tarefas de rega com `source = 'weather'` são canceladas ou antecipadas conforme o IPMA
+1. **v1 · Manual to-do** (Oct 2026 · ~1 week)
+    - `tasks` table, migration and API routes
+    - `/tasks` page, header entry and "Hoje" (Today) card on the dashboard
+    - Repeat every N days and the Free limit
+    - ◆ Criterion to move on: completing and undoing a repeating task leaves no duplicate or orphaned copies
+2. **v1.1 · Shopping tasks** (after Phase 0 of `PRD.md`)
+    - "Criar tarefas de compra" (Create shopping tasks) button on the calculation result
+3. **v2 · Automatic tasks** (= Phase 2 of `PRD.md`, Jan–Feb 2027)
+    - The per-zone calendar creates tasks with `source = 'calendar'`
+    - Daily email with today's tasks. Requires choosing and integrating an email service
+4. **v3 · Weather** (= Phase 3 of `PRD.md`)
+    - Watering tasks with `source = 'weather'` are cancelled or brought forward based on IPMA
 
-## Critérios de aceitação (v1)
+## Acceptance criteria (v1)
 
-- [ ] Uma tarefa sem horta e sem data aparece em "Sem data".
-- [ ] Uma tarefa com data de ontem e por fazer aparece em "Atrasadas".
-- [ ] Concluir "Regar" (a cada 2 dias, data dia 10) no dia 12 cria uma nova tarefa para dia 14.
-- [ ] Desmarcar essa tarefa apaga a do dia 14, se ainda não estiver feita.
-- [ ] Dois pedidos seguidos de "concluir" criam só uma cópia.
-- [ ] Um utilizador Grátis com 20 pendentes recebe um 403 com `code: "PLAN_LIMIT_EXCEEDED"` ao criar a 21.ª.
-- [ ] `GET`, `PATCH` e `DELETE` com o `id` de uma tarefa de outra pessoa devolvem 404.
-- [ ] Apagar uma horta deixa as tarefas dela em "Geral".
-- [ ] A página `/tasks` funciona a 360 px de largura, por teclado e com leitor de ecrã (cada checkbox tem o título da tarefa como label).
+- [ ] A task with no garden and no date appears in "Sem data" (No date).
+- [ ] A task dated yesterday and not done appears in "Atrasadas" (Overdue).
+- [ ] Completing "Regar" (Water) (every 2 days, dated the 10th) on the 12th creates a new task for the 14th.
+- [ ] Unchecking that task deletes the one for the 14th, if it is not done yet.
+- [ ] Two consecutive "complete" requests create only one copy.
+- [ ] A Free user with 20 open tasks gets a 403 with `code: "PLAN_LIMIT_EXCEEDED"` when creating the 21st.
+- [ ] `GET`, `PATCH` and `DELETE` with the `id` of another person's task return 404.
+- [ ] Deleting a garden leaves its tasks in "Geral" (General).
+- [ ] The `/tasks` page works at 360 px width, by keyboard and with a screen reader (each checkbox has the task title as its label).
 
-## Riscos e questões em aberto
+## Risks and open questions
 
-| Risco | Mitigação |
+| Risk | Mitigation |
 | --- | --- |
-| Lista manual cai em desuso depois da 1.ª semana | Sem lembretes isto é provável. A v2 (tarefas automáticas e email) é o que resolve, por isso não deve ficar adiada para depois da época |
-| Duas listas de tarefas no futuro | Uma só tabela `tasks`, com `source`. Atualizar o `PRD.md` para tirar `reminders` |
-| A ligação a `calculations` tem de mudar para `gardens` | Coluna opcional e migração simples na Fase 1 |
+| Manual list falls out of use after the 1st week | Without reminders this is likely. v2 (automatic tasks and email) is what fixes it, so it should not be pushed past the season |
+| Two task lists in the future | A single `tasks` table, with `source`. Update `PRD.md` to remove `reminders` |
+| The link to `calculations` has to change to `gardens` | Optional column and a simple migration in Phase 1 |
 
-**Questões em aberto**
+**Open questions**
 
-- [ ] As tarefas manuais ficam mesmo no Grátis, ou passam só para o Standard?
-- [ ] O limite de 20 pendentes no Grátis é o número certo?
-- [ ] Que serviço de email usar na v2 (Resend, SendGrid, SES)? Hoje não há nenhum no código.
-- [ ] Atualizar o `PRD.md`: tirar a tabela `reminders` e apontar a Feature 3 para `tasks`.
+- [ ] Do manual tasks really stay on Free, or move to Standard only?
+- [ ] Is the limit of 20 open tasks on Free the right number?
+- [ ] Which email service to use in v2 (Resend, SendGrid, SES)? There is none in the code today.
+- [ ] Update `PRD.md`: remove the `reminders` table and point Feature 3 to `tasks`.
