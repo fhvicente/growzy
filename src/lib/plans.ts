@@ -2,16 +2,9 @@
  * Planos e o que cada um inclui. Só entra aqui o que já existe na app.
  */
 
-export const PLAN_TYPES = {
-	FREE: "free",
-	STANDARD: "standard",
-	PREMIUM: "premium",
-} as const;
-
-export type PlanType = (typeof PLAN_TYPES)[keyof typeof PLAN_TYPES];
+export type PlanType = "free" | "standard" | "premium";
 
 export interface PlanFeatures {
-	name: string;
 	displayName: string;
 	maxHortas: number; // -1 = ilimitado
 	fullYearWatering: boolean;
@@ -20,9 +13,9 @@ export interface PlanFeatures {
 }
 
 export const PLAN_FEATURES: Record<PlanType, PlanFeatures> = {
-	free: { name: "free", displayName: "Grátis", maxHortas: 3, fullYearWatering: false, fullYearCalendar: false, savingsDetail: false },
-	standard: { name: "standard", displayName: "Standard", maxHortas: -1, fullYearWatering: true, fullYearCalendar: true, savingsDetail: true },
-	premium: { name: "premium", displayName: "Premium", maxHortas: -1, fullYearWatering: true, fullYearCalendar: true, savingsDetail: true },
+	free: { displayName: "Grátis", maxHortas: 3, fullYearWatering: false, fullYearCalendar: false, savingsDetail: false },
+	standard: { displayName: "Standard", maxHortas: -1, fullYearWatering: true, fullYearCalendar: true, savingsDetail: true },
+	premium: { displayName: "Premium", maxHortas: -1, fullYearWatering: true, fullYearCalendar: true, savingsDetail: true },
 };
 
 export type PlanCopy = {
@@ -86,14 +79,14 @@ export const PLAN_COPY: PlanCopy[] = [
  */
 export function getPlanFromPriceId(priceId: string): PlanType {
 	if (priceId === process.env.STRIPE_STANDARD_PRICE_ID) {
-		return PLAN_TYPES.STANDARD;
+		return "standard";
 	}
 	if (priceId === process.env.STRIPE_PREMIUM_PRICE_ID) {
-		return PLAN_TYPES.PREMIUM;
+		return "premium";
 	}
-	return PLAN_TYPES.FREE;
+	return "free";
 }
 
 export function getPlanFeatures(planType: PlanType): PlanFeatures {
-	return PLAN_FEATURES[planType] || PLAN_FEATURES[PLAN_TYPES.FREE];
+	return PLAN_FEATURES[planType] || PLAN_FEATURES.free;
 }

@@ -1,10 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
 	reactStrictMode: true,
-	experimental: {
-		serverActions: {
-			allowedOrigins: ["localhost:3000"],
-		},
+	async redirects() {
+		return [{ source: "/", destination: "/pt", permanent: false }];
 	},
 	// ponytail: CSP só com diretivas que não precisam de nonce; script-src estrito exige nonces nos scripts inline do Next.
 	async headers() {

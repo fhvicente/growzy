@@ -4,20 +4,13 @@ import { usePathname } from "next/navigation";
 import { Header } from "@/components/header";
 
 export function ConditionalHeader() {
-	const pathname = usePathname();
+	// Na landing o header fica por cima do hero; nas outras páginas o espaçador guarda o lugar dele (é fixed).
+	const isLandingPage = /^\/[a-z]{2}$/.test(usePathname());
 
-	// Hide header on landing page (root paths like /pt, /en, etc.)
-	const isLandingPage = pathname.match(/^\/[a-z]{2}$/);
-
-	if (isLandingPage) {
-		return null;
-	}
-
-	// O header é fixed: o espaçador guarda o lugar dele no fluxo da página.
 	return (
 		<>
 			<Header />
-			<div aria-hidden className="h-[66px] sm:h-[70px]" />
+			{!isLandingPage && <div aria-hidden className="h-[66px] sm:h-[70px]" />}
 		</>
 	);
 }

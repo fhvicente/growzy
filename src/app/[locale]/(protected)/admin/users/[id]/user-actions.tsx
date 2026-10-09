@@ -52,8 +52,8 @@ export function UserActions({
 					if (to !== plan) void run({ action: "set-plan", plan: to }, `Mudar o plano de ${plan} para ${to}?`);
 				}}
 			>
-				{Object.values(PLAN_FEATURES).map((p) => (
-					<option key={p.name} value={p.name}>
+				{Object.entries(PLAN_FEATURES).map(([type, p]) => (
+					<option key={type} value={type}>
 						{p.displayName}
 					</option>
 				))}

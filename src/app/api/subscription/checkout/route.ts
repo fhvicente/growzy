@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import Stripe from "stripe";
 import { getSessionUser } from "@/lib/session";
-import { PLAN_TYPES } from "@/lib/plans";
 import { defaultLocale, locales } from "@/app/[locale]/i18n";
 
 export async function POST(request: NextRequest) {
@@ -19,7 +18,7 @@ export async function POST(request: NextRequest) {
 	const { plan } = body;
 
 	// Premium só se vende quando existir (Fase 3 do PRD)
-	if (plan !== PLAN_TYPES.STANDARD) {
+	if (plan !== "standard") {
 		return NextResponse.json({ ok: false, error: "Plano indisponível" }, { status: 400 });
 	}
 
