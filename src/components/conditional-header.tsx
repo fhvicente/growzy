@@ -13,5 +13,11 @@ export function ConditionalHeader() {
 		return null;
 	}
 
-	return <Header />;
+	// O header é fixed: o espaçador guarda o lugar dele no fluxo da página.
+	return (
+		<>
+			<Header />
+			<div aria-hidden className="h-[66px] sm:h-[70px]" />
+		</>
+	);
 }

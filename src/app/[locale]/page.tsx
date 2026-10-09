@@ -1,4 +1,3 @@
-import { LandingNav } from "@/components/landing/landing-nav";
 import { LandingMotion } from "@/components/landing/motion";
 import { HeroSection } from "@/components/landing/hero-section";
 import { ProblemSection } from "@/components/landing/problem-section";
@@ -7,8 +6,6 @@ import { HowItWorksSection } from "@/components/landing/how-it-works-section";
 import { PricingSection } from "@/components/landing/pricing-section";
 import { FAQSection } from "@/components/landing/faq-section";
 import { CTASection } from "@/components/landing/cta-section";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 import { Header } from "@/components/header";
 
 interface LocalePageProps {
@@ -17,11 +14,10 @@ interface LocalePageProps {
 
 export default async function LocalePage({ params }: LocalePageProps) {
 	const { locale } = await params;
-	const session = await auth.api.getSession({ headers: await headers() });
 
 	return (
 		<>
-			{session ? <Header /> : <LandingNav locale={locale} />}
+			<Header />
 			<LandingMotion>
 				<HeroSection locale={locale} />
 				<ProblemSection />

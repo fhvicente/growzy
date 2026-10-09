@@ -68,6 +68,8 @@
 
 html {
 	-webkit-font-smoothing: antialiased;
+	/* âncoras (#features…) não ficam debaixo do header fixo */
+	scroll-padding-top: 6rem;
 }
 
 body {
