@@ -77,7 +77,7 @@ export function LandingNav({ locale }: LandingNavProps) {
 					>
 						Entrar
 					</Link>
-					<Link href={`/${locale}/calculator`}>
+					<Link href={`/${locale}/register`}>
 						<Button variant="tomato" size="sm" className="h-10 px-5">
 							Começar grátis
 						</Button>
@@ -108,7 +108,7 @@ export function LandingNav({ locale }: LandingNavProps) {
 						</a>
 					))}
 					<div className="mt-6 flex flex-col gap-3">
-						<Link href={`/${locale}/calculator`}>
+						<Link href={`/${locale}/register`}>
 							<Button variant="tomato" size="lg" className="w-full">
 								Começar grátis
 							</Button>

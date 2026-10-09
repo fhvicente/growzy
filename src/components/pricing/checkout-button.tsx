@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { ArrowRight } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useState } from "react";
@@ -8,9 +9,10 @@ import { useState } from "react";
 interface CheckoutButtonProps {
 	plan: "standard" | "premium";
 	label?: string;
+	className?: string;
 }
 
-export function CheckoutButton({ plan, label }: CheckoutButtonProps) {
+export function CheckoutButton({ plan, label, className }: CheckoutButtonProps) {
 	const params = useParams();
 	const locale = (params?.locale as string) || "pt";
 	const [loading, setLoading] = useState(false);
@@ -46,7 +48,7 @@ export function CheckoutButton({ plan, label }: CheckoutButtonProps) {
 	const buttonLabel = label || (plan === "premium" ? "Começar Premium" : "Começar Teste Grátis");
 
 	return (
-		<Button onClick={handleCheckout} disabled={loading} size="lg" className="group w-full gap-2">
+		<Button onClick={handleCheckout} disabled={loading} size="lg" className={cn("group w-full gap-2", className)}>
 			{loading ? "A processar..." : buttonLabel}
 			<ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
 		</Button>

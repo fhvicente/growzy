@@ -1,12 +1,30 @@
-import { Card } from "@/components/ui/card";
+import { headers } from "next/headers";
+import { notFound, redirect } from "next/navigation";
+import { GardenResultClient } from "@/components/garden/garden-result-client";
+import { auth } from "@/lib/auth";
+import { gardenView, getUserGarden } from "@/lib/garden-view";
 
-export default function CalculatorResultPage() {
+interface GardenResultPageProps {
+	params: Promise<{ locale: string; id: string }>;
+}
+
+export default async function GardenResultPage({ params }: GardenResultPageProps) {
+	const { locale, id } = await params;
+	const session = await auth.api.getSession({ headers: await headers() });
+	if (!session) {
+		redirect(`/${locale}/login`);
+	}
+
+	const garden = await getUserGarden(id, session.user.id);
+	if (!garden) notFound();
+
+	const { view, month } = await gardenView(garden.input, session.user.id);
 	return (
-		<div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
-			<h1 className="text-2xl font-bold">Resultado do cálculo</h1>
-			<Card className="mt-6 p-6">
-				<p className="text-gray-600">Detalhamento de custos será renderizado aqui.</p>
-			</Card>
-		</div>
+		<GardenResultClient
+			locale={locale}
+			garden={{ id: garden.id, name: garden.name, input: garden.input }}
+			view={view}
+			month={month}
+		/>
 	);
 }

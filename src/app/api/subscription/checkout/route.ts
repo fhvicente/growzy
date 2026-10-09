@@ -3,10 +3,7 @@ import type { NextRequest } from "next/server";
 import Stripe from "stripe";
 import { getSessionUser } from "@/lib/session";
 import { PLAN_TYPES } from "@/lib/plans";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-	apiVersion: "2026-01-28.clover",
-});
+import { defaultLocale, locales } from "@/app/[locale]/i18n";
 
 export async function POST(request: NextRequest) {
 	const user = await getSessionUser(request);
@@ -15,24 +12,28 @@ export async function POST(request: NextRequest) {
 	}
 
 	// Receber o plano selecionado do body
-	const body = await request.json();
+	const body = await request.json().catch(() => null);
+	if (!body) {
+		return NextResponse.json({ ok: false, error: "Dados inválidos" }, { status: 400 });
+	}
 	const { plan } = body;
 
-	// Validar plano
-	if (!plan || (plan !== PLAN_TYPES.STANDARD && plan !== PLAN_TYPES.PREMIUM)) {
-		return NextResponse.json({ ok: false, error: "Invalid plan selected" }, { status: 400 });
+	// Premium só se vende quando existir (Fase 3 do PRD)
+	if (plan !== PLAN_TYPES.STANDARD) {
+		return NextResponse.json({ ok: false, error: "Plano indisponível" }, { status: 400 });
 	}
 
-	// Selecionar o Price ID apropriado
-	const priceId =
-		plan === PLAN_TYPES.STANDARD ? process.env.STRIPE_STANDARD_PRICE_ID : process.env.STRIPE_PREMIUM_PRICE_ID;
+	const priceId = process.env.STRIPE_STANDARD_PRICE_ID;
 
 	if (!priceId || !process.env.STRIPE_SECRET_KEY) {
 		return NextResponse.json({ ok: false, error: "Stripe not configured" }, { status: 500 });
 	}
+	// Criado por pedido: ao nível do módulo rebenta no `next build`, que corre sem segredos.
+	const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2026-02-25.clover" });
 
 	const origin = request.headers.get("origin") ?? "http://localhost:3000";
-	const locale = request.headers.get("x-locale") ?? "pt";
+	const requested = request.headers.get("x-locale");
+	const locale = locales.find((l) => l === requested) ?? defaultLocale;
 
 	try {
 		const session = await stripe.checkout.sessions.create({
@@ -51,9 +52,6 @@ export async function POST(request: NextRequest) {
 		return NextResponse.json({ ok: true, url: session.url });
 	} catch (error: any) {
 		console.error("Error creating checkout session:", error);
-		return NextResponse.json(
-			{ ok: false, error: error?.message || "Error creating checkout session" },
-			{ status: 500 },
-		);
+		return NextResponse.json({ ok: false, error: "Error creating checkout session" }, { status: 500 });
 	}
 }

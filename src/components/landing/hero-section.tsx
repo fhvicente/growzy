@@ -43,8 +43,8 @@ export function HeroSection({ locale }: HeroSectionProps) {
 						data-delay="0.35"
 						className="mt-8 max-w-[34ch] text-lg leading-relaxed text-paper/80 sm:text-xl"
 					>
-						Escolhe as plantas, diz quantas queres e a Growzy mostra quanto vais gastar antes de saíres para
-						o viveiro.
+						Mede o espaço, escolhe o que queres plantar e a Growzy diz quantas plantas cabem, o que comprar
+						e quanto custa.
 					</p>
 					<div
 						data-reveal="up"

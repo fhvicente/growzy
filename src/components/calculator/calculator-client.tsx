@@ -1,241 +1,366 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Minus, Plus, X } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { GardenReport } from "@/components/garden/garden-report";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, Calculator, Info, Leaf } from "lucide-react";
+import { lightOk } from "@/lib/garden/allocate";
+import { CROPS, cropBySlug } from "@/lib/garden/catalog";
+import type { PlanView } from "@/lib/garden/redact";
+import type { GardenInput } from "@/lib/garden/types";
+import { cn } from "@/lib/utils";
 
-interface PlantItem {
-	id: string;
-	name: string;
-	price: number;
-}
+const DEFAULT_INPUT: GardenInput = {
+	zone: "litoral-norte",
+	space: { kind: "vasos", widthCm: 200, lengthCm: 100 },
+	light: "sol",
+	irrigation: "regador",
+	crops: [],
+	owned: [],
+};
 
-interface SelectedPlant extends PlantItem {
-	quantity: number;
-}
+const norm = (s: string) =>
+	s
+		.normalize("NFD")
+		.replace(/\p{Diacritic}/gu, "")
+		.toLowerCase();
+const validSize = (n: number) => Number.isInteger(n) && n >= 30 && n <= 2000;
 
-interface CalculatorClientProps {
-	plants: PlantItem[];
-}
-
-export function CalculatorClient({ plants }: CalculatorClientProps) {
-	const [selectedPlantId, setSelectedPlantId] = useState<string>("");
-	const [quantity, setQuantity] = useState<number>(1);
-	const [selectedPlants, setSelectedPlants] = useState<SelectedPlant[]>([]);
-	const [hasCalculated, setHasCalculated] = useState(false);
-
-	const totalPlants = useMemo(() => selectedPlants.reduce((sum, plant) => sum + plant.quantity, 0), [selectedPlants]);
-	const totalCost = useMemo(
-		() => selectedPlants.reduce((sum, plant) => sum + plant.quantity * plant.price, 0),
-		[selectedPlants],
+function Choice<T extends string>({
+	label,
+	value,
+	options,
+	onChange,
+}: {
+	label: string;
+	value: T;
+	options: [T, string][];
+	onChange: (v: T) => void;
+}) {
+	return (
+		<fieldset className="space-y-2">
+			<legend className="text-sm font-semibold text-ink">{label}</legend>
+			<div className="flex flex-wrap gap-2">
+				{options.map(([v, text]) => (
+					<button
+						key={v}
+						type="button"
+						aria-pressed={value === v}
+						onClick={() => onChange(v)}
+						className={cn(
+							"min-h-11 rounded-full border px-4 text-sm transition-colors duration-200",
+							value === v ? "border-moss bg-moss text-paper" : "border-line bg-card text-ink hover:border-moss",
+						)}
+					>
+						{text}
+					</button>
+				))}
+			</div>
+		</fieldset>
 	);
+}
 
-	const handleAdd = () => {
-		if (!selectedPlantId) return;
-		const plant = plants.find((p) => p.id === selectedPlantId);
-		if (!plant) return;
-		const qty = Math.max(1, Number(quantity) || 1);
+type Props = { locale: string; garden?: { id: number; name: string; input: GardenInput } };
 
-		setSelectedPlants((prev) => {
-			const existing = prev.find((p) => p.id === plant.id);
-			if (existing) {
-				return prev.map((p) => (p.id === plant.id ? { ...p, quantity: p.quantity + qty } : p));
+export function CalculatorClient({ locale, garden }: Props) {
+	const router = useRouter();
+	const [input, setInput] = useState<GardenInput>(garden?.input ?? DEFAULT_INPUT);
+	const [query, setQuery] = useState("");
+	const [result, setResult] = useState<{ view: PlanView; month: number } | null>(null);
+	const [error, setError] = useState<{ text: string } | null>(null);
+	const [name, setName] = useState(garden?.name ?? "");
+	const [saving, setSaving] = useState(false);
+	const [saveError, setSaveError] = useState<{ text: string; upgrade?: boolean } | null>(null);
+
+	const update = (fn: (i: GardenInput) => GardenInput) => {
+		setSaveError(null);
+		setInput(fn);
+	};
+	const set = (patch: Partial<GardenInput>) => update((i) => ({ ...i, ...patch }));
+	const setSpace = (patch: Partial<GardenInput["space"]>) => update((i) => ({ ...i, space: { ...i.space, ...patch } }));
+	const setCrop = (slug: string, patch: Partial<GardenInput["crops"][number]>) =>
+		update((i) => ({ ...i, crops: i.crops.map((c) => (c.slug === slug ? { ...c, ...patch } : c)) }));
+
+	const sizesOk = validSize(input.space.widthCm) && validSize(input.space.lengthCm);
+	const ready = input.crops.length > 0 && sizesOk;
+
+	useEffect(() => {
+		if (!ready) return;
+		const controller = new AbortController();
+		const timer = setTimeout(async () => {
+			try {
+				const res = await fetch("/api/garden/plan", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(input),
+					signal: controller.signal,
+				});
+				const json = await res.json();
+				if (!json.ok) throw new Error(json.error);
+				setResult(json.data);
+				setError(null);
+			} catch {
+				if (!controller.signal.aborted) setError({ text: "Não consegui recalcular. Mostro o último resultado." });
 			}
-			return [...prev, { ...plant, quantity: qty }];
-		});
+		}, 300);
+		return () => {
+			clearTimeout(timer);
+			controller.abort();
+		};
+	}, [input, ready]);
 
-		setHasCalculated(false);
-	};
+	const matches = useMemo(() => {
+		const chosen = new Set(input.crops.map((c) => c.slug));
+		return CROPS.filter((c) => !chosen.has(c.slug) && norm(c.name).includes(norm(query)));
+	}, [query, input.crops]);
 
-	const handleRemove = (plantId: string) => {
-		setSelectedPlants((prev) => prev.filter((p) => p.id !== plantId));
-		setHasCalculated(false);
-	};
+	const autoQty = (slug: string) => result?.view.allocation.crops.find((a) => a.slug === slug)?.quantity ?? 1;
 
-	const handleCalculate = () => {
-		setHasCalculated(true);
+	const save = async () => {
+		setSaving(true);
+		setSaveError(null);
+		try {
+			const res = await fetch(garden ? `/api/gardens/${garden.id}` : "/api/gardens", {
+				method: garden ? "PATCH" : "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ name: name.trim(), input }),
+			});
+			const json = await res.json().catch(() => ({ ok: false }));
+			if (!json.ok) {
+				setSaveError({ text: json.error ?? "Não consegui guardar.", upgrade: json.code === "PLAN_LIMIT_EXCEEDED" });
+				return;
+			}
+			router.push(`/${locale}/calculator/result/${json.data.id}`);
+		} catch {
+			setSaveError({ text: "Não consegui guardar. Verifica a ligação e tenta outra vez." });
+		} finally {
+			setSaving(false);
+		}
 	};
 
 	return (
-		<div className="min-h-screen bg-gray-50">
-			<div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-				{/* Header */}
-				<div className="mb-8">
-					<div className="flex items-center gap-3">
-						<div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary-600 text-white">
-							<Calculator className="h-6 w-6" />
-						</div>
-						<div>
-							<h1 className="text-3xl font-bold text-gray-900">Calculadora de Custos</h1>
-							<p className="mt-1 text-muted-foreground">Planeie a sua horta e calcule os custos totais</p>
-						</div>
-					</div>
-				</div>
+		<div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+			<h1 className="display text-4xl text-ink">{garden ? `Editar ${garden.name}` : "Planeia a tua horta"}</h1>
+			<p className="mt-2 text-ink-soft">Diz-nos o espaço e o que queres plantar. Nós fazemos as contas.</p>
 
-				<div className="grid gap-6 lg:grid-cols-3">
-					{/* Main Calculator Form */}
-					<div className="lg:col-span-2">
-						<Card className="border-2">
-							<CardHeader>
-								<CardTitle>Adicionar Plantas</CardTitle>
-								<CardDescription>Selecione as plantas e quantidades para o seu projeto</CardDescription>
-							</CardHeader>
-							<CardContent className="space-y-6">
-								{/* Plant Selection */}
-								<div className="space-y-4 rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 p-4">
-									<div className="grid gap-4 md:grid-cols-2">
-										<div className="space-y-2">
-											<Label htmlFor="plant">Planta</Label>
-											<Select
-												id="plant"
-												className="w-full"
-												value={selectedPlantId}
-												onChange={(e) => setSelectedPlantId(e.target.value)}
+			<div className="mt-8 grid gap-8 lg:grid-cols-[1fr_26rem]">
+				<div className="space-y-6">
+					<section className="space-y-5 rounded-lg border border-line bg-card p-5">
+						<h2 className="font-display text-xl font-bold text-ink">1. O teu espaço</h2>
+						<Choice
+							label="Onde vais plantar"
+							value={input.space.kind}
+							options={[
+								["vasos", "Vasos e floreiras"],
+								["canteiro-elevado", "Canteiro elevado"],
+								["terra", "Terra"],
+							]}
+							onChange={(kind) => setSpace({ kind })}
+						/>
+						<div className="grid grid-cols-2 gap-3">
+							<div className="space-y-1">
+								<Label htmlFor="width">Largura (cm)</Label>
+								<Input
+									id="width"
+									type="number"
+									inputMode="numeric"
+									min={30}
+									max={2000}
+									value={input.space.widthCm || ""}
+									onChange={(e) => setSpace({ widthCm: Number(e.target.value) })}
+								/>
+							</div>
+							<div className="space-y-1">
+								<Label htmlFor="length">Comprimento (cm)</Label>
+								<Input
+									id="length"
+									type="number"
+									inputMode="numeric"
+									min={30}
+									max={2000}
+									value={input.space.lengthCm || ""}
+									onChange={(e) => setSpace({ lengthCm: Number(e.target.value) })}
+								/>
+							</div>
+						</div>
+						{!sizesOk && <p className="text-sm text-destructive">As medidas vão de 30 a 2000 cm, em números inteiros.</p>}
+						<Choice
+							label="Sol direto por dia"
+							value={input.light}
+							options={[
+								["sol", "6 h ou mais"],
+								["meia-sombra", "3 a 6 h"],
+								["sombra", "menos de 3 h"],
+							]}
+							onChange={(light) => set({ light })}
+						/>
+						<Choice
+							label="Zona"
+							value={input.zone}
+							options={[
+								["litoral-norte", "Norte e litoral centro"],
+								["interior", "Interior"],
+								["sul", "Sul e ilhas"],
+							]}
+							onChange={(zone) => set({ zone })}
+						/>
+						<Choice
+							label="Como vais regar"
+							value={input.irrigation}
+							options={[
+								["regador", "Regador"],
+								["gota-a-gota", "Gota-a-gota"],
+							]}
+							onChange={(irrigation) => set({ irrigation })}
+						/>
+					</section>
+
+					<section className="space-y-4 rounded-lg border border-line bg-card p-5">
+						<h2 className="font-display text-xl font-bold text-ink">2. O que queres plantar</h2>
+						{input.crops.length > 0 && (
+							<ul className="space-y-2">
+								{input.crops.map((c) => {
+									const crop = cropBySlug.get(c.slug);
+									const q = c.quantity ?? autoQty(c.slug);
+									return (
+										<li key={c.slug} className="flex flex-wrap items-center gap-2 rounded-md border border-line p-2 pl-3">
+											<span className="flex-1 font-medium text-ink">{crop?.name ?? c.slug}</span>
+											<Button
+												variant="ghost"
+												size="icon"
+												aria-label={`Menos ${crop?.name}`}
+												onClick={() => setCrop(c.slug, { quantity: Math.max(1, q - 1) })}
 											>
-												<option value="">Selecione uma planta</option>
-												{plants.map((plant) => (
-													<option key={plant.id} value={plant.id}>
-														{plant.name} - €{plant.price.toFixed(2)}
-													</option>
-												))}
-											</Select>
-										</div>
-										<div className="space-y-2">
-											<Label htmlFor="quantity">Quantidade</Label>
-											<Input
-												id="quantity"
-												type="number"
-												min={1}
-												value={quantity}
-												onChange={(e) => setQuantity(Number(e.target.value))}
-												placeholder="Ex: 5"
-											/>
-										</div>
-									</div>
-									<Button
-										variant="secondary"
-										className="w-full gap-2"
-										onClick={handleAdd}
-										disabled={!selectedPlantId}
-									>
-										<Plus className="h-4 w-4" />
-										Adicionar à lista
-									</Button>
-								</div>
-
-								{/* Selected Plants List */}
-								<div className="space-y-3">
-									<h3 className="flex items-center gap-2 text-sm font-semibold">
-										Plantas Selecionadas
-										<Badge variant="secondary">{selectedPlants.length}</Badge>
-									</h3>
-									{selectedPlants.length === 0 ? (
-										<div className="rounded-lg border-2 border-gray-200 bg-white p-4">
-											<p className="text-center text-sm text-muted-foreground">
-												Nenhuma planta adicionada ainda. Selecione plantas acima para começar.
-											</p>
-										</div>
-									) : (
-										<div className="space-y-2">
-											{selectedPlants.map((plant) => (
-												<div
-													key={plant.id}
-													className="flex items-center justify-between rounded-lg border p-3"
+												<Minus className="h-4 w-4" />
+											</Button>
+											<span className="w-10 text-center tabular-nums" aria-live="polite">
+												{q}
+											</span>
+											<Button
+												variant="ghost"
+												size="icon"
+												aria-label={`Mais ${crop?.name}`}
+												onClick={() => setCrop(c.slug, { quantity: Math.min(200, q + 1) })}
+											>
+												<Plus className="h-4 w-4" />
+											</Button>
+											{c.quantity ? (
+												<button
+													type="button"
+													className="min-h-11 min-w-11 text-xs text-moss underline"
+													onClick={() => setCrop(c.slug, { quantity: undefined })}
 												>
-													<div className="flex items-center gap-3">
-														<Leaf className="h-5 w-5 text-primary-600" />
-														<div>
-															<p className="font-medium">{plant.name}</p>
-															<p className="text-sm text-muted-foreground">
-																{plant.quantity} unidades × €{plant.price.toFixed(2)}
-															</p>
-														</div>
-													</div>
-													<div className="flex items-center gap-3">
-														<span className="font-semibold">
-															€{(plant.quantity * plant.price).toFixed(2)}
-														</span>
-														<Button
-															variant="ghost"
-															size="icon"
-															onClick={() => handleRemove(plant.id)}
-														>
-															<Trash2 className="h-4 w-4 text-red-600" />
-														</Button>
-													</div>
-												</div>
-											))}
-										</div>
-									)}
-								</div>
-
-								{/* Calculate Button */}
-								<Button size="lg" className="w-full gap-2" onClick={handleCalculate}>
-									<Calculator className="h-5 w-5" />
-									Calcular custos totais
-								</Button>
-							</CardContent>
-						</Card>
-					</div>
-
-					{/* Sidebar - Tips & Summary */}
-					<div className="space-y-6">
-						{/* Quick Summary */}
-						<Card className="border-2 border-primary-200 bg-linear-to-br from-primary-50 to-white">
-							<CardHeader>
-								<CardTitle className="text-lg">Resumo</CardTitle>
-							</CardHeader>
-							<CardContent className="space-y-4">
-								<div className="flex items-center justify-between text-sm">
-									<span className="text-muted-foreground">Total de plantas:</span>
-									<span className="font-semibold">{totalPlants}</span>
-								</div>
-								<div className="flex items-center justify-between text-sm">
-									<span className="text-muted-foreground">Custo estimado:</span>
-									<span className="font-semibold">€{totalCost.toFixed(2)}</span>
-								</div>
-								<div className="rounded-lg bg-primary-100 p-3 text-center">
-									<p className="text-xs text-primary-700">
-										{selectedPlants.length === 0
-											? "Adicione plantas para ver o cálculo"
-											: hasCalculated
-												? "Cálculo atualizado"
-												: "Clique em calcular para atualizar"}
-									</p>
-								</div>
-							</CardContent>
-						</Card>
-
-						{/* Tips Card */}
-						<Card>
-							<CardHeader>
-								<CardTitle className="flex items-center gap-2 text-lg">
-									<Info className="h-5 w-5 text-primary-600" />
-									Dicas
-								</CardTitle>
-							</CardHeader>
-							<CardContent className="space-y-3 text-sm text-muted-foreground">
-								<div className="rounded-lg bg-blue-50 p-3">
-									<p className="font-medium text-blue-900">💡 Comece pequeno</p>
-									<p className="mt-1 text-xs text-blue-700">
-										Se é a sua primeira horta, comece com 3-5 plantas fáceis de cultivar.
-									</p>
-								</div>
-								<div className="rounded-lg bg-green-50 p-3">
-									<p className="font-medium text-green-900">🌱 Plantas populares</p>
-									<p className="mt-1 text-xs text-green-700">
-										Tomate, alface e manjericão são ótimas escolhas para iniciantes.
-									</p>
-								</div>
-							</CardContent>
-						</Card>
-					</div>
+													auto
+												</button>
+											) : (
+												<span className="text-xs text-ink-soft">auto</span>
+											)}
+											{crop?.price.planta && (
+												<button
+													type="button"
+													className="min-h-11 rounded-full border border-line px-3 text-xs"
+													aria-label={`Comprar ${crop.name} como ${c.from === "semente" ? "planta" : "semente"}`}
+													onClick={() => setCrop(c.slug, { from: c.from === "semente" ? "planta" : "semente" })}
+												>
+													{c.from === "semente" ? "semente" : "planta"}
+												</button>
+											)}
+											<Button
+												variant="ghost"
+												size="icon"
+												aria-label={`Tirar ${crop?.name}`}
+												onClick={() => set({ crops: input.crops.filter((x) => x.slug !== c.slug) })}
+											>
+												<X className="h-4 w-4" />
+											</Button>
+										</li>
+									);
+								})}
+							</ul>
+						)}
+						<Input
+							placeholder="Procura: tomate, alface, manjericão…"
+							aria-label="Procurar cultura"
+							value={query}
+							onChange={(e) => setQuery(e.target.value)}
+						/>
+						<ul className="flex flex-wrap gap-2">
+							{matches.map((c) => {
+								const ok = lightOk(c, input.light);
+								return (
+									<li key={c.slug}>
+										<button
+											type="button"
+											disabled={!ok || input.crops.length >= 15}
+											onClick={() => {
+												set({ crops: [...input.crops, { slug: c.slug }] });
+												setQuery("");
+											}}
+											className={cn(
+												"min-h-11 rounded-full border border-line px-3 text-sm",
+												ok ? "text-ink hover:border-moss" : "cursor-not-allowed text-ink-soft line-through",
+											)}
+										>
+											{c.name}
+											{!ok && <span className="sr-only"> (precisa de mais sol)</span>}
+										</button>
+									</li>
+								);
+							})}
+						</ul>
+						{input.light !== "sol" && (
+							<p className="text-xs text-ink-soft">As culturas riscadas precisam de mais sol do que tens.</p>
+						)}
+					</section>
 				</div>
+
+				<aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
+					{!ready && (
+						<p className="rounded-lg border border-dashed border-line p-5 text-ink-soft">
+							Escolhe pelo menos uma cultura para ver as contas.
+						</p>
+					)}
+					{error && (
+						<p role="alert" className="text-sm text-destructive">
+							{error.text}
+						</p>
+					)}
+					{ready && result && (
+						<>
+							<GardenReport view={result.view} month={result.month} locale={locale} />
+							<div className="space-y-2 rounded-lg border border-line bg-card p-4">
+								<Label htmlFor="garden-name">Nome da horta</Label>
+								<Input
+									id="garden-name"
+									maxLength={80}
+									placeholder="Varanda da cozinha"
+									value={name}
+									onChange={(e) => {
+									setName(e.target.value);
+									setSaveError(null);
+								}}
+								/>
+								<Button className="w-full" disabled={saving || !name.trim()} onClick={save}>
+									{garden ? "Guardar alterações" : "Guardar horta"}
+								</Button>
+								{saveError && (
+									<p role="alert" className="text-sm text-destructive">
+										{saveError.text}{" "}
+										{saveError.upgrade && (
+											<Link href={`/${locale}/pricing`} className="underline">
+												Ver planos
+											</Link>
+										)}
+									</p>
+								)}
+							</div>
+						</>
+					)}
+				</aside>
 			</div>
 		</div>
 	);

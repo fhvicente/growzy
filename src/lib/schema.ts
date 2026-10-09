@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm";
-import { boolean, decimal, index, integer, json, pgTable, serial, text, timestamp, varchar } from "drizzle-orm/pg-core";
+import { boolean, doublePrecision, index, integer, json, pgTable, primaryKey, serial, text, timestamp, varchar } from "drizzle-orm/pg-core";
+import type { GardenInput } from "./garden/types";
 
 export const users = pgTable("users", {
 	id: text("id").primaryKey(),
@@ -83,50 +84,6 @@ export const verifications = pgTable(
 	}),
 );
 
-export const plants = pgTable("plants", {
-	id: serial("id").primaryKey(),
-	name: varchar("name", { length: 255 }).notNull(),
-	scientificName: varchar("scientific_name", { length: 255 }),
-	description: text("description"),
-	imageUrl: varchar("image_url", { length: 2048 }),
-	potSizeRequired: integer("pot_size_required").notNull(),
-	soilAmountRequired: decimal("soil_amount_required", {
-		precision: 8,
-		scale: 2,
-	}).notNull(),
-	seedsPerPlant: integer("seeds_per_plant").default(1).notNull(),
-	price: decimal("price", { precision: 8, scale: 2 }).default("0").notNull(),
-	createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
-	updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
-});
-
-export const products = pgTable("products", {
-	id: serial("id").primaryKey(),
-	name: varchar("name", { length: 255 }).notNull(),
-	type: varchar("type", { length: 50 }).notNull(),
-	description: text("description"),
-	imageUrl: varchar("image_url", { length: 2048 }),
-	price: decimal("price", { precision: 8, scale: 2 }).notNull(),
-	storeName: varchar("store_name", { length: 255 }).notNull(),
-	storeUrl: varchar("store_url", { length: 2048 }).notNull(),
-	size: decimal("size", { precision: 8, scale: 2 }),
-	createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
-	updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
-});
-
-export const calculations = pgTable("calculations", {
-	id: serial("id").primaryKey(),
-	userId: text("user_id").notNull(),
-	plantsData: json("plants_data").notNull(),
-	productsData: json("products_data").notNull(),
-	totalCost: decimal("total_cost", { precision: 10, scale: 2 }).notNull(),
-	plantsCount: integer("plants_count").notNull(),
-	estimatedSavings: decimal("estimated_savings", { precision: 10, scale: 2 }).default("0").notNull(),
-	isPublic: boolean("is_public").default(false).notNull(),
-	createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
-	updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
-});
-
 export const subscriptions = pgTable("subscriptions", {
 	id: serial("id").primaryKey(),
 	userId: text("user_id").notNull(),
@@ -141,6 +98,24 @@ export const subscriptions = pgTable("subscriptions", {
 	updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
 });
 
+export const gardens = pgTable(
+	"gardens",
+	{
+		id: serial("id").primaryKey(),
+		userId: text("user_id")
+			.notNull()
+			.references(() => users.id, { onDelete: "cascade" }),
+		name: varchar("name", { length: 80 }).notNull(),
+		input: json("input").$type<GardenInput>().notNull(),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+		updatedAt: timestamp("updated_at")
+			.defaultNow()
+			.$onUpdate(() => new Date())
+			.notNull(),
+	},
+	(t) => ({ gardensUserIdx: index("gardens_user_idx").on(t.userId) }),
+);
+
 export const webhookLogs = pgTable("webhook_logs", {
 	id: serial("id").primaryKey(),
 	eventId: varchar("event_id", { length: 255 }),
@@ -151,6 +126,34 @@ export const webhookLogs = pgTable("webhook_logs", {
 	createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
 	updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
 });
+
+// Só ações de admin. Sem email/nome do cliente: targetId sem FK sobrevive ao apagar a conta.
+export const auditLogs = pgTable(
+	"audit_logs",
+	{
+		id: serial("id").primaryKey(),
+		actorId: text("actor_id").notNull(),
+		action: varchar("action", { length: 50 }).notNull(),
+		targetId: text("target_id"),
+		details: json("details").$type<Record<string, unknown>>(),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+	},
+	(t) => ({ auditTargetIdx: index("audit_logs_target_idx").on(t.targetId) }),
+);
+
+// Preços editados no admin, por cima do catálogo do código (src/lib/garden/catalog.ts).
+// field: planta | semente | material (min/max) ou mercado (€/kg em min, max = min).
+export const catalogPrices = pgTable(
+	"catalog_prices",
+	{
+		slug: varchar("slug", { length: 50 }).notNull(),
+		field: varchar("field", { length: 20 }).notNull(),
+		min: doublePrecision("min").notNull(),
+		max: doublePrecision("max").notNull(),
+		updatedAt: timestamp("updated_at").defaultNow().notNull(),
+	},
+	(t) => ({ pk: primaryKey({ columns: [t.slug, t.field] }) }),
+);
 
 export const usersRelations = relations(users, ({ many }) => ({
 	sessions: many(sessions),

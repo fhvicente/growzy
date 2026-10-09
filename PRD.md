@@ -2,12 +2,15 @@
 
 2 out 2026 · Flávio Vicente
 
-Este PRD transforma a Growzy de uma calculadora de uso único num assistente para a época inteira: templates por tamanho, preços reais, lembretes, previsões e planeamento com IA. A ideia de fundo é simples: o plano Grátis calcula, os planos pagos acompanham.
+Este PRD transforma a Growzy de uma calculadora de uso único num assistente para a época inteira. O centro é o **motor espaço → horta**: a pessoa dá as medidas, a luz e a zona, e a Growzy diz quantas plantas cabem, o que comprar, quanto custa, quanto e quando regar, quando semear e colher, e se compensa. Por cima disso vêm preços reais, lembretes com meteorologia e, por fim, IA. O plano Grátis responde à pergunta de hoje; os pagos dão a época inteira e acompanham.
+
+> Atualizado a 7 out 2026: acrescentada a Feature 0 (motor), os templates passam a ser inputs pré-preenchidos do motor, a tabela de planos e o faseamento foram alinhados. Spec técnica: `docs/superpowers/specs/2026-10-07-motor-horta-design.md`.
 
 ## Contexto e problema
 
 Hoje a Growzy calcula o custo de uma horta a partir de preços fixos nas tabelas `plants` e `products`. Há quatro problemas:
 
+- **A ideia original não existe.** A calculadora não pede medidas, luz nem zona, e usa 5 plantas escritas no código. Não diz quantas plantas cabem nem quando regar.
 - **O cálculo está errado por defeito.** `src/app/api/calculator/calculate/route.ts` soma todos os produtos da base a qualquer cálculo, sejam ou não precisos para aquela horta.
 - **Os preços não têm fonte nem data.** O utilizador não tem razão para confiar no total, e o `PRODUCT.md` exige números em que a pessoa confie.
 - **Não há valor recorrente.** Um cálculo faz-se uma vez por época, por isso uma subscrição mensal não se justifica.
@@ -64,22 +67,45 @@ Cada plano pago acrescenta uma camada: o Standard acompanha a época e o Premium
 
 | Feature | Grátis | Standard (€4,99/mês · €39/ano) | Premium (€9,99/mês · €79/ano) |
 | --- | --- | --- | --- |
+| Motor espaço → horta (distribuição, lista de compras, custo) | Sim | Sim | Sim |
 | Hortas guardadas | 3 | Ilimitadas | Ilimitadas |
-| Templates por tamanho | 2 (varanda 1 m², floreira) | Todos | Todos + template à medida pela IA |
-| Lista de compras | Total e itens principais | Lista completa: plantas, substrato em litros, vasos, ferramentas e rega | Preço por loja com link |
-| Preços | Intervalo com fonte e data | Igual | Igual + preço mediano reportado por outros utilizadores na região |
-| Calendário | — | Sementeira e transplante por zona climática | Ajustado às plantas e à data de cada horta |
-| Lembretes | — | Rega e sementeira por email ou push, com horário fixo | Rega ajustada à meteorologia, alertas de geada e calor |
-| Registo | — | Gastos e colheitas | Igual + histórico de várias épocas |
-| Previsão de colheita | — | Janela prevista por planta | Janela + quantidade estimada + poupança projetada |
-| Planeamento com IA | — | — | Plano a partir de espaço, luz e orçamento, mais perguntas à IA (com limite mensal) |
+| Rega calculada (litros, frequência, hora, gota-a-gota) | Mês atual | 12 meses | 12 meses + ajuste diário IPMA |
+| Calendário por zona | Mês atual + próximo passo | 12 meses | Igual |
+| Poupança e payback | Total da 1.ª época e payback | + 2.ª época e detalhe por cultura | Igual |
+| Lembretes (rega, sementeira) | — | Email, horário fixo | Ajustados ao IPMA, alertas de geada e calor |
+| Registo de gastos e colheitas | — | Sim | Sim + histórico de várias épocas |
+| Planeamento com IA | — | — | Com limite mensal |
 | Exportação | — | PDF da lista de compras | PDF da lista e do plano da época |
+
+Só aparece na landing e em `/pricing` o que já está em produção. Enquanto a Fase 3 não existir, o Premium aparece como "Em breve", sem botão de compra. As listas da landing, de `/pricing` e de `plan-display.tsx` saem de uma só constante em `src/lib/plans.ts`.
 
 **Sazonalidade.** A maior parte das hortas de varanda para entre novembro e fevereiro, por isso é de esperar que as subscrições mensais sejam canceladas em novembro. Para o contrariar:
 
 - **Plano anual em destaque.** Na página de preços, o anual aparece como opção por defeito.
 - **Passe de época.** Pagamento único que cobre março a outubro, com preço a definir entre €25 e €30 no Standard.
 - **Uso no inverno.** Planear a próxima época, culturas de inverno (couves, favas, alhos) e o balanço da época que acabou.
+
+## Feature 0 — Motor espaço → horta
+
+O coração do produto. Todos os números saem de regras escritas e testadas, não de IA. Detalhe completo, fórmulas e testes na spec `docs/superpowers/specs/2026-10-07-motor-horta-design.md`.
+
+**Input:** tipo de espaço (vasos, canteiro elevado, terra), largura × comprimento em cm, luz (sol ≥6 h, meia-sombra 3–6 h, sombra <3 h), zona (litoral-norte, interior, sul), rega (regador ou gota-a-gota), culturas escolhidas (quantidade automática ou manual, planta ou semente) e o material que a pessoa já tem.
+
+**O que calcula**
+
+| Saída | Regra (resumo) |
+| --- | --- |
+| Culturas compatíveis | Só entram as que aguentam a luz do espaço; as outras aparecem riscadas com o motivo |
+| Quantas cabem | Área útil (80% em vasos) dividida pelas culturas; ocupação = espaçamento² no canteiro, diâmetro do vaso² ou fração de floreira em vasos; teto por casa (`maxUseful`) |
+| Recipientes e substrato | Vaso mais pequeno ≥ volume mínimo da cultura, floreiras de 80 cm para culturas com espaçamento ≤ 25 cm; substrato em sacos de 50 L |
+| Custo | Intervalo (soma dos mínimos a soma dos máximos), só com o que esta horta precisa, sem o que a pessoa já tem |
+| Rega | ET0 por Hargreaves com normais climáticas do IPMA da zona × Kc (FAO-56) × fator de luz × área da planta; dias entre regas pela reserva de água do recipiente (1 a 7); litros por rega; hora; minutos do temporizador gota-a-gota |
+| Calendário | Meses de sementeira e transplante ajustados à zona; janela de colheita; o que fazer em cada mês |
+| Poupança | Colheita esperada × €/kg do supermercado − custo; 1.ª época e seguintes (sem duráveis); semanas até a horta se pagar, ou "não compensa", sem esconder |
+
+**Dados:** um catálogo versionado em git (`src/lib/garden/catalog.ts`) com cerca de 30 culturas típicas de varanda portuguesa, material com preço, loja e data, e o clima por zona. Substitui as tabelas `plants` e `products`. Uma pessoa da área revê os valores antes do lançamento.
+
+**Critério de aceitação:** no telemóvel, uma varanda de 2 × 1 m com 3 culturas dá total, rega do mês e payback em menos de 1 segundo; a soma das linhas é igual ao total; o Grátis não recebe da API os dados que são do Standard.
 
 ## Feature 1 — Preços reais
 
@@ -101,9 +127,11 @@ Cada preço passa a ter um intervalo, uma fonte e uma data de verificação. A a
 
 **Fora de âmbito:** scraping. Quebra sempre que a loja muda o site e costuma violar os termos de uso.
 
-## Feature 2 — Templates por tamanho e lista de compras
+## Feature 2 — Templates por tamanho
 
-O utilizador escolhe o espaço, a luz e o estilo, e recebe uma horta pronta a comprar. A lista de compras só inclui o que aquela horta precisa, e isso corrige o cálculo que hoje soma todos os produtos.
+> Com a Feature 0, a lista de compras por grupo, o «já tenho» e o cálculo de substrato passam para o motor. Um template passa a ser só um input pré-preenchido do motor (espaço, luz e culturas), que a pessoa abre e ajusta. Fica para depois da Fase 1.
+
+O utilizador escolhe o espaço, a luz e o estilo, e recebe uma horta pronta a comprar.
 
 **Templates iniciais (8)**
 
@@ -133,7 +161,7 @@ O utilizador escolhe o espaço, a luz e o estilo, e recebe uma horta pronta a co
 
 A app passa a dizer o que fazer esta semana em cada horta. No Premium, os lembretes de rega têm em conta a previsão do IPMA, por isso não há aviso para regar num dia de chuva.
 
-**Calendário (Standard)**
+**Calendário** (a versão estática por zona entra na Feature 0; aqui fica a vista «Esta semana» com as hortas e datas reais)
 
 - Cada planta tem janelas de sementeira, transplante e colheita por zona climática. Para começar chegam 3 zonas: Norte e litoral centro, Interior, e Sul e ilhas.
 - A zona é escolhida no perfil a partir do concelho.
@@ -143,7 +171,7 @@ A app passa a dizer o que fazer esta semana em cada horta. No Premium, os lembre
 
 | Tipo | Standard | Premium |
 | --- | --- | --- |
-| Rega | Frequência fixa por planta (ex.: a cada 2 dias no verão) | Igual, mas o lembrete é cancelado com probabilidade de precipitação ≥ 70% e antecipado com máxima ≥ 32 °C |
+| Rega | Frequência calculada pelo motor para o mês (Feature 0) | Igual, mas o lembrete é cancelado com probabilidade de precipitação ≥ 70% e antecipado com máxima ≥ 32 °C |
 | Sementeira e transplante | No início de cada janela | Igual, com a data de cada horta |
 | Geada | — | Com mínima prevista ≤ 2 °C: "protege as plantas esta noite" |
 | Avisos IPMA | — | Amarelo ou superior para tempo quente, vento ou chuva no distrito |
@@ -214,53 +242,49 @@ Os limites servem para manter o custo por utilizador abaixo de uma fração dos 
 
 ## Modelo de dados e arquitetura
 
-A horta passa a ser uma entidade própria, `gardens`, com linhas por planta e por produto. Hoje uma horta guardada é uma linha em `calculations` com JSON, e isso não chega para registar datas de plantio por planta nem lembretes. Tudo continua em Postgres com Drizzle, sem serviços novos além do IPMA e da API da Anthropic.
+A horta passa a ser uma entidade própria, `gardens`, que guarda o input do motor. O resultado (quantidades, custo, rega, calendário, poupança) recalcula-se sempre a partir do input e do catálogo. Os dados agronómicos vivem no catálogo em git, não na base. Tudo continua em Postgres com Drizzle, sem serviços novos além do IPMA e da API da Anthropic.
 
-| Tabela | Nova / alterada | Colunas principais |
+| Tabela | Fase | Colunas principais |
 | --- | --- | --- |
-| `plants` | Alterada | + `days_to_harvest_min/max`, `yield_per_plant_low/high`, `area_per_plant_m2`, `light` (sol, meia sombra, sombra), `water_every_days`, `market_price_per_kg` |
-| `plant_calendar` | Nova | `plant_id`, `zone`, `sow_from/to`, `transplant_from/to` (mês e dia) |
-| `products` | Alterada | + `category` (recipiente, substrato, ferramenta, rega), `volume_liters` |
-| `prices` | Nova | `item_type` (plant/product), `item_id`, `store`, `url`, `min`, `max`, `source` (manual/reported/affiliate), `checked_at`, `district` |
-| `templates` | Nova | `slug`, `name`, `area_m2`, `light`, `tier` (free/standard), `items` (plantas e produtos com quantidades) |
-| `gardens` | Nova (substitui o uso de `calculations`) | `user_id`, `template_id`, `name`, `area_m2`, `light`, `concelho`, `zone` |
-| `garden_items` | Nova | `garden_id`, `item_type`, `item_id`, `quantity`, `planted_at`, `owned` (já tem) |
-| `expenses` | Nova | `user_id`, `garden_id`, `item_id`, `store`, `amount`, `paid_at` |
-| `harvests` | Nova | `garden_id`, `plant_id`, `quantity`, `unit` (g/un), `harvested_at` |
-| `reminders` | Nova | `garden_id`, `kind`, `due_on`, `status` (pending/done/snoozed/cancelled), `reason` |
-| `ai_usage` | Nova | `user_id`, `month`, `plans`, `questions`, `tokens` |
+| `gardens` | 0 (substitui `calculations`) | `user_id`, `name`, `input` (JSON do motor: espaço, luz, zona, rega, culturas, material que já tem) |
+| `plants`, `products` | 0 (removidas) | Substituídas pelo catálogo `src/lib/garden/catalog.ts` |
+| `prices` | 1 (se o catálogo deixar de chegar) | `item_slug`, `store`, `url`, `min`, `max`, `source` (manual/reported/affiliate), `checked_at`, `district` |
+| `garden_plantings` | 2 | `garden_id`, `crop_slug`, `planted_at`, `method` (semente/transplante): datas reais por cultura, para lembretes e previsão |
+| `expenses` | 2 | `user_id`, `garden_id`, `item_id`, `store`, `amount`, `paid_at` |
+| `harvests` | 2 | `garden_id`, `plant_id`, `quantity`, `unit` (g/un), `harvested_at` |
+| `tasks` | 2 | Ver `PRD-todo.md`; os lembretes são tarefas com `source` = `calendar` ou `weather` |
+| `ai_usage` | 3 | `user_id`, `month`, `plans`, `questions`, `tokens` |
 
 **Arquitetura**
 
-- **Gating por plano.** Uma função única `can(user, feature)` lê `users.subscription_plan` e é chamada nas rotas da API. Esconder a feature só no frontend não chega.
-- **Cálculo.** As rotas `calculate` e `recalculate` passam a receber uma horta ou um template e a somar apenas os seus `garden_items`, com os preços de `prices`.
+- **Gating por plano.** A configuração de `src/lib/plans.ts` lê `users.subscription_plan` e é chamada nas rotas da API. Esconder a feature só no frontend não chega.
+- **Cálculo.** Um motor em funções puras (`src/lib/garden`) corre só no servidor (`POST /api/garden/plan`). O que é pago é retirado da resposta no servidor (`redactForPlan`), nunca só escondido na UI.
 - **Jobs agendados.** Um cron diário gera os lembretes (IPMA) e um cron semanal envia o resumo. No Fly, isto pode ser uma máquina agendada ou um endpoint protegido chamado por cron externo.
-- **Migração.** Cada linha de `calculations` passa a uma `gardens` com os seus `garden_items`. `calculations` fica só de leitura durante 1 versão e depois é removida.
+- **Migração.** `calculations`, `plants` e `products` estão vazias na base local; confirmar em produção antes de as remover na Fase 0 (se tiverem dados, exportar primeiro).
 
 ## Faseamento e roadmap
 
 As Fases 0 e 1 têm de estar concluídas antes de março de 2027, porque é quando a maioria das pessoas compra para a horta. As datas são uma proposta e assumem uma pessoa a desenvolver a tempo inteiro.
 
-1. **Fase 0 · Corrigir a base** (out 2026 · 1–2 semanas)
-    - Cálculo soma só os produtos de cada horta
-    - Landing sem features que ainda não existem
-    - Função `can(user, feature)` nas rotas da API
-    - ◆ Portão: total = soma das linhas em todos os cálculos
-2. **Fase 1 · Templates e preços** (nov–dez 2026) — prazo imposto pela época
-    - Tabelas `prices`, `templates`, `gardens` e `garden_items`
-    - 50 itens com preço verificado e 8 templates
-    - Lista de compras por grupo, com «já tenho»
-    - ◆ Portão: Standard passa a incluir templates e lista completa
-3. **Fase 2 · Calendário e lembretes** (jan–fev 2027)
-    - Calendário por zona e vista «Esta semana»
-    - Lembretes de rega e sementeira por email
+1. **Fase 0 · Motor espaço → horta** (out–nov 2026 · 2–3 semanas)
+    - Catálogo de culturas, material e clima por zona
+    - Motor: distribuição, lista de compras, rega, calendário e poupança, com testes
+    - Tabela `gardens`, rotas novas e remoção de `calculations`, `plants` e `products`
+    - `plans.ts` só com o que existe; landing e `/pricing` a partir da mesma constante; Premium «Em breve»
+    - ◆ Portão: testes do motor passam, total = soma das linhas, o Grátis não recebe dados do Standard
+2. **Fase 1 · Preços reais e templates** (dez 2026) — prazo imposto pela época
+    - Revisão dos dados do catálogo por alguém da área
+    - Preços verificados em 4 a 6 lojas, aviso aos 180 dias
+    - Templates como inputs pré-preenchidos
+    - ◆ Portão: catálogo revisto antes de março
+3. **Fase 2 · Lembretes e registo** (jan–fev 2027)
+    - Vista «Esta semana», tarefas (`PRD-todo.md`) e lembretes por email a partir do motor
     - Registo de gastos e colheitas
     - ◆ Portão: lembretes sem duplicados em 2 semanas de beta
 4. **Fase 3 · Premium** (mar–mai 2027)
-    - Rega ajustada ao IPMA, alertas de geada e calor
-    - Previsão de colheita e poupança
+    - Rega ajustada ao IPMA (mesma fórmula, com tMin e tMax da previsão e precipitação prevista), alertas de geada e calor
     - Planeamento com IA em beta, com limites mensais
-    - ◆ Portão: Premium na landing só depois de medir o custo da IA
+    - ◆ Portão: Premium compra-se só depois de existir
 
 Cada fase só começa depois de o portão da fase anterior estar cumprido.
 

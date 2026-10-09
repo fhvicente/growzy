@@ -15,6 +15,34 @@
       "when": 1770203324347,
       "tag": "0001_jittery_doctor_strange",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791403162382,
+      "tag": "0002_gardens",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791403168439,
+      "tag": "0003_drop_legacy_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791547170715,
+      "tag": "0004_audit_logs",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791552821503,
+      "tag": "0005_catalog_prices",
+      "breakpoints": true
     }
   ]
 }

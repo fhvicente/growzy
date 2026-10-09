@@ -1,11 +1,10 @@
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Check, Sparkles, Zap, Crown, ArrowRight, Star } from "lucide-react";
 import Link from "next/link";
+import { headers } from "next/headers";
+import { Check } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { CheckoutButton } from "@/components/pricing/checkout-button";
 import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { PLAN_COPY } from "@/lib/plans";
 
 interface PricingPageProps {
 	params: Promise<{ locale: string }>;
@@ -16,250 +15,60 @@ export default async function PricingPage({ params }: PricingPageProps) {
 	const session = await auth.api.getSession({ headers: await headers() });
 	const isLoggedIn = !!session;
 
-	const plans = [
-		{
-			type: "free",
-			name: "Grátis",
-			price: "€0",
-			period: "sempre grátis",
-			description: "Perfeito para começar",
-			features: [
-				"Até 3 hortas",
-				"Acesso à calculadora básica",
-				"20 plantas na base de dados",
-				"Sem acompanhamento",
-			],
-			cta: isLoggedIn ? "Usar grátis" : "Começar grátis",
-			href: isLoggedIn ? `/${locale}/calculator` : `/${locale}/register`,
-			highlighted: false,
-			icon: Zap,
-		},
-		{
-			type: "standard",
-			name: "Standard",
-			price: "€4.99",
-			period: "/mês",
-			yearlyPrice: "€39",
-			description: "Ideal para horticultores regulares",
-			badge: "Mais Popular",
-			features: [
-				"Hortas ilimitadas",
-				"Calculadora avançada",
-				"50+ plantas na base de dados",
-				"Acompanhamento de progresso",
-				"Calendário de plantação",
-				"Comparação de economias",
-				"Exportação de relatórios",
-				"Suporte prioritário",
-			],
-			cta: "Começar Teste Grátis",
-			href: isLoggedIn ? "" : `/${locale}/register`,
-			highlighted: true,
-			icon: Sparkles,
-			isCheckout: true,
-		},
-		{
-			type: "premium",
-			name: "Premium",
-			price: "€9.99",
-			period: "/mês",
-			yearlyPrice: "€79",
-			description: "Para profissionais e entusiastas",
-			features: [
-				"Tudo em Standard",
-				"Planeamento com IA",
-				"Análise avançada de solo",
-				"Previsões de colheita",
-				"Alertas personalizados",
-				"Consultoria virtual",
-				"Base de dados completa (100+ plantas)",
-				"API access",
-				"Suporte 24/7",
-			],
-			cta: "Começar Teste Grátis",
-			href: isLoggedIn ? "" : `/${locale}/register`,
-			highlighted: false,
-			icon: Crown,
-			isCheckout: true,
-		},
-	];
-
 	return (
-		<div className="min-h-screen bg-linear-to-br from-gray-50 to-primary-50/20">
-			<div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-				{/* Header */}
-				<div className="text-center">
-					<Badge className="mb-4 bg-primary-600">
-						<Sparkles className="mr-1 h-3 w-3" />
-						Planos Flexíveis
-					</Badge>
-					<h1 className="text-4xl font-bold tracking-tight text-gray-900 lg:text-5xl">
-						Escolha o plano perfeito para si
-					</h1>
-					<p className="mt-4 text-lg text-gray-600">
-						Comece grátis e faça upgrade quando precisar de mais funcionalidades
-					</p>
-				</div>
+		<div className="min-h-screen bg-paper">
+			<div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
+				<h1 className="display text-4xl text-ink sm:text-5xl">Começa grátis. Cresce quando quiseres.</h1>
+				<p className="mt-4 max-w-2xl text-lg text-ink-soft">
+					O Grátis responde ao que precisas hoje. O Standard dá-te a época inteira. Sem fidelização.
+				</p>
 
-				{/* Pricing Cards */}
-				<div className="mt-12 grid gap-8 lg:grid-cols-3">
-					{plans.map((plan) => (
-						<Card
-							key={plan.name}
-							className={`relative transition-all ${
-								plan.highlighted
-									? "scale-105 border-primary-500 shadow-2xl"
-									: "border-gray-200 hover:border-primary-200 hover:shadow-lg"
-							}`}
-						>
-							{plan.highlighted && (
-								<div className="absolute -top-4 left-1/2 -translate-x-1/2">
-									<Badge className="bg-primary-600 px-4 py-1 text-white">
-										<Star className="mr-1 h-3 w-3" />
-										{plan.badge}
-									</Badge>
-								</div>
-							)}
-
-							<CardHeader
-								className={plan.highlighted ? "bg-linear-to-br from-primary-50 to-primary-100/50" : ""}
+				<div className="mt-12 grid grid-cols-1 gap-6 lg:grid-cols-3">
+					{PLAN_COPY.map((plan) => {
+						const highlighted = plan.type === "standard";
+						return (
+							<div
+								key={plan.type}
+								className={
+									highlighted
+										? "flex min-w-0 flex-col rounded-[2rem] bg-moss p-8 text-paper"
+										: "flex min-w-0 flex-col rounded-[2rem] border border-line bg-card p-8 text-ink"
+								}
 							>
-								<div className="flex items-center gap-3">
-									<div
-										className={`flex h-12 w-12 items-center justify-center rounded-lg ${
-											plan.highlighted ? "bg-primary-600 text-white" : "bg-gray-100 text-gray-600"
-										}`}
-									>
-										<plan.icon className="h-6 w-6" />
-									</div>
-									<div>
-										<CardTitle className="text-2xl">{plan.name}</CardTitle>
-										<CardDescription>{plan.description}</CardDescription>
-									</div>
-								</div>
-								<div className="mt-6">
-									<div className="flex items-baseline gap-2">
-										<span className="text-5xl font-bold tracking-tight text-gray-900">
-											{plan.price}
-										</span>
-										<span className="text-lg text-muted-foreground">{plan.period}</span>
-									</div>
-									{plan.yearlyPrice ? (
-										<p className="mt-1 text-sm text-muted-foreground">
-											ou {plan.yearlyPrice}/ano (poupe 34%)
-										</p>
-									) : null}
-								</div>
-							</CardHeader>
-
-							<CardContent className="pt-6">
-								<ul className="space-y-3">
-									{plan.features.map((feature) => (
-										<li key={feature} className="flex items-start gap-3">
-											<Check
-												className={`mt-0.5 h-5 w-5 shrink-0 ${
-													plan.highlighted ? "text-primary-600" : "text-gray-400"
-												}`}
-											/>
-											<span className="text-sm text-gray-700">{feature}</span>
+								<h2 className="text-2xl font-bold">{plan.name}</h2>
+								<p className={highlighted ? "mt-1 text-paper/75" : "mt-1 text-ink-soft"}>{plan.description}</p>
+								<p className="mt-8 flex items-baseline gap-1">
+									<span className="font-display text-xl font-bold">€</span>
+									<span className="font-display text-6xl font-extrabold tracking-tighter tabular-nums">{plan.price}</span>
+									<span className={highlighted ? "text-paper/70" : "text-ink-soft"}>{plan.period}</span>
+								</p>
+								<p className={`mt-1 h-5 text-sm ${highlighted ? "text-paper/70" : "text-ink-soft"}`}>{plan.yearly}</p>
+								<ul className="mt-8 flex-1 space-y-3">
+									{plan.features.map((f) => (
+										<li key={f} className="flex items-start gap-3">
+											<Check className={`mt-0.5 h-5 w-5 shrink-0 ${highlighted ? "text-sprout" : "text-moss"}`} strokeWidth={2.5} />
+											<span>{f}</span>
 										</li>
 									))}
 								</ul>
-							</CardContent>
-
-							<CardFooter>
-								{plan.isCheckout && isLoggedIn ? (
-									<CheckoutButton
-										plan={plan.type === "standard" ? "standard" : "premium"}
-										label={plan.cta}
-									/>
-								) : (
-									<Link href={plan.href} className="w-full cursor-pointer">
-										<Button size="lg" variant="outline" className="group w-full gap-2">
-											{plan.cta}
-											<ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-										</Button>
-									</Link>
-								)}
-							</CardFooter>
-						</Card>
-					))}
-				</div>
-
-				{/* FAQ/Benefits Section */}
-				<div className="mt-20">
-					<div className="text-center">
-						<h2 className="text-3xl font-bold text-gray-900">Porquê escolher Premium?</h2>
-						<p className="mt-2 text-muted-foreground">Benefícios exclusivos para maximizar o seu sucesso</p>
-					</div>
-
-					<div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-						<Card className="border-2">
-							<CardHeader>
-								<div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-primary-100 text-primary-600">
-									<Sparkles className="h-5 w-5" />
+								<div className="mt-8">
+									{!plan.available ? (
+										<span className="block rounded-full border border-dashed border-current py-3 text-center font-semibold opacity-70">
+											Em breve
+										</span>
+									) : plan.type === "standard" && isLoggedIn ? (
+										<CheckoutButton plan="standard" label="Escolher Standard" />
+									) : (
+										<Link href={isLoggedIn ? `/${locale}/calculator` : `/${locale}/register`}>
+											<Button variant={highlighted ? "tomato" : "outline"} size="lg" className="w-full">
+												{plan.type === "free" ? "Começar grátis" : "Criar conta e escolher Standard"}
+											</Button>
+										</Link>
+									)}
 								</div>
-								<CardTitle className="text-lg">Sem Limites</CardTitle>
-							</CardHeader>
-							<CardContent>
-								<p className="text-sm text-muted-foreground">
-									Crie quantos projetos quiser, sem restrições mensais.
-								</p>
-							</CardContent>
-						</Card>
-
-						<Card className="border-2">
-							<CardHeader>
-								<div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-primary-100 text-primary-600">
-									<Zap className="h-5 w-5" />
-								</div>
-								<CardTitle className="text-lg">Funcionalidades Avançadas</CardTitle>
-							</CardHeader>
-							<CardContent>
-								<p className="text-sm text-muted-foreground">
-									Acesso a todas as plantas e ferramentas de cálculo avançadas.
-								</p>
-							</CardContent>
-						</Card>
-
-						<Card className="border-2">
-							<CardHeader>
-								<div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-primary-100 text-primary-600">
-									<Crown className="h-5 w-5" />
-								</div>
-								<CardTitle className="text-lg">Suporte Prioritário</CardTitle>
-							</CardHeader>
-							<CardContent>
-								<p className="text-sm text-muted-foreground">
-									Respostas rápidas e ajuda dedicada quando precisar.
-								</p>
-							</CardContent>
-						</Card>
-					</div>
-				</div>
-
-				{/* CTA Section */}
-				<div className="mt-20 rounded-2xl bg-linear-to-br from-primary-600 to-primary-800 p-8 text-center text-white lg:p-12">
-					<h2 className="text-3xl font-bold">Ainda tem dúvidas?</h2>
-					<p className="mt-4 text-primary-100">
-						Experimente grátis e veja como podemos ajudar a sua horta a prosperar
-					</p>
-					<div className="mt-8 flex flex-col gap-4 sm:flex-row sm:justify-center">
-						<Link href={`/${locale}/register`} className="cursor-pointer">
-							<Button
-								size="lg"
-								variant="secondary"
-								className="bg-white text-primary-700 hover:bg-primary-50"
-							>
-								Começar grátis
-							</Button>
-						</Link>
-						<Link href={`/${locale}/contact`} className="cursor-pointer">
-							<Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
-								Contactar-nos
-							</Button>
-						</Link>
-					</div>
+							</div>
+						);
+					})}
 				</div>
 			</div>
 		</div>
