@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Home, Calculator, LayoutDashboard, CreditCard, User, LogOut } from "lucide-react";
+import { Menu, X, Calculator, LayoutDashboard, CreditCard, User, LogOut } from "lucide-react";
 import { useState } from "react";
 import { useEffect } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -15,12 +15,11 @@ export function Header() {
 	const params = useParams();
 	const locale = (params?.locale as string) || "pt";
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-	const { data: session } = authClient.useSession();
+	const { data: session, isPending } = authClient.useSession();
 	const isLoggedIn = !!session;
 	const pathname = usePathname();
 
 	const navigation = [
-		{ name: "Início", href: `/${locale}`, icon: Home },
 		{
 			name: "Calculadora",
 			href: `/${locale}/calculator`,
@@ -33,7 +32,12 @@ export function Header() {
 		},
 		{ name: "Planos", href: `/${locale}/pricing`, icon: CreditCard },
 	];
-	const visibleNavigation = isLoggedIn ? navigation.filter((item) => item.name !== "Início") : navigation;
+
+	// recarga completa: as páginas server-side voltam a ler a sessão
+	const handleSignOut = async () => {
+		await authClient.signOut();
+		window.location.href = `/${locale}`;
+	};
 
 	const handleNavClick = () => {
 		setMobileMenuOpen(false);
@@ -58,7 +62,7 @@ export function Header() {
 
 				{/* Desktop Navigation */}
 				<div className="hidden lg:flex lg:gap-x-1">
-					{visibleNavigation.map((item) => (
+					{navigation.map((item) => (
 						<Link
 							key={item.name}
 							href={item.href}
@@ -74,7 +78,7 @@ export function Header() {
 
 				{/* Desktop Auth */}
 				<div className="hidden lg:flex lg:items-center lg:gap-4">
-					{isLoggedIn ? (
+					{isPending ? null : isLoggedIn ? (
 						<div className="flex items-center gap-3">
 							<Link href={`/${locale}/profile`}>
 								<Button variant="ghost" size="icon">
@@ -84,7 +88,7 @@ export function Header() {
 								</Button>
 							</Link>
 							<Separator orientation="vertical" className="h-6" />
-							<Button variant="ghost" size="sm">
+							<Button variant="ghost" size="sm" onClick={handleSignOut}>
 								<LogOut className="h-4 w-4" />
 								Terminar sessão
 							</Button>
@@ -115,7 +119,7 @@ export function Header() {
 			{mobileMenuOpen && (
 				<div className="lg:hidden">
 					<div className="space-y-1 border-t px-4 pb-3 pt-2">
-						{visibleNavigation.map((item) => (
+						{navigation.map((item) => (
 							<Link
 								key={item.name}
 								href={item.href}
@@ -127,7 +131,7 @@ export function Header() {
 							</Link>
 						))}
 						<Separator className="my-2" />
-						{isLoggedIn ? (
+						{isPending ? null : isLoggedIn ? (
 							<>
 								<Link
 									href={`/${locale}/profile`}
@@ -137,7 +141,10 @@ export function Header() {
 									<User className="h-5 w-5" />
 									Perfil
 								</Link>
-								<button className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 cursor-pointer">
+								<button
+									type="button"
+									onClick={handleSignOut}
+									className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 cursor-pointer">
 									<LogOut className="h-5 w-5" />
 									Terminar sessão
 								</button>

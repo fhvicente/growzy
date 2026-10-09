@@ -127,6 +127,20 @@ export const webhookLogs = pgTable("webhook_logs", {
 	updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
 });
 
+// Só ações de admin. Sem email/nome do cliente: targetId sem FK sobrevive ao apagar a conta.
+export const auditLogs = pgTable(
+	"audit_logs",
+	{
+		id: serial("id").primaryKey(),
+		actorId: text("actor_id").notNull(),
+		action: varchar("action", { length: 50 }).notNull(),
+		targetId: text("target_id"),
+		details: json("details").$type<Record<string, unknown>>(),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+	},
+	(t) => ({ auditTargetIdx: index("audit_logs_target_idx").on(t.targetId) }),
+);
+
 export const usersRelations = relations(users, ({ many }) => ({
 	sessions: many(sessions),
 	accounts: many(accounts),

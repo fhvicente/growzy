@@ -3,10 +3,7 @@ import type { NextRequest } from "next/server";
 import Stripe from "stripe";
 import { getSessionUser } from "@/lib/session";
 import { PLAN_TYPES } from "@/lib/plans";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-	apiVersion: "2026-01-28.clover",
-});
+import { defaultLocale, locales } from "@/app/[locale]/i18n";
 
 export async function POST(request: NextRequest) {
 	const user = await getSessionUser(request);
@@ -15,7 +12,10 @@ export async function POST(request: NextRequest) {
 	}
 
 	// Receber o plano selecionado do body
-	const body = await request.json();
+	const body = await request.json().catch(() => null);
+	if (!body) {
+		return NextResponse.json({ ok: false, error: "Dados inválidos" }, { status: 400 });
+	}
 	const { plan } = body;
 
 	// Premium só se vende quando existir (Fase 3 do PRD)
@@ -28,9 +28,12 @@ export async function POST(request: NextRequest) {
 	if (!priceId || !process.env.STRIPE_SECRET_KEY) {
 		return NextResponse.json({ ok: false, error: "Stripe not configured" }, { status: 500 });
 	}
+	// Criado por pedido: ao nível do módulo rebenta no `next build`, que corre sem segredos.
+	const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2026-02-25.clover" });
 
 	const origin = request.headers.get("origin") ?? "http://localhost:3000";
-	const locale = request.headers.get("x-locale") ?? "pt";
+	const requested = request.headers.get("x-locale");
+	const locale = locales.find((l) => l === requested) ?? defaultLocale;
 
 	try {
 		const session = await stripe.checkout.sessions.create({
@@ -49,9 +52,6 @@ export async function POST(request: NextRequest) {
 		return NextResponse.json({ ok: true, url: session.url });
 	} catch (error: any) {
 		console.error("Error creating checkout session:", error);
-		return NextResponse.json(
-			{ ok: false, error: error?.message || "Error creating checkout session" },
-			{ status: 500 },
-		);
+		return NextResponse.json({ ok: false, error: "Error creating checkout session" }, { status: 500 });
 	}
 }

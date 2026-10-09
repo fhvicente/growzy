@@ -9,6 +9,8 @@
 		"start": "next start",
 		"lint": "next lint",
 		"test": "node --test 'src/lib/garden/**/*.test.ts'",
+		"test:api": "node --env-file=.env.test --import tsx --test --test-concurrency=1 'src/test/*.test.ts'",
+		"test:api:setup": "docker exec growzy-postgres createdb -U postgres growzy_test; DATABASE_URL=postgres://postgres:postgres@localhost:5433/growzy_test drizzle-kit migrate",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",
 		"db:studio": "drizzle-kit studio",
