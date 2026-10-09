@@ -1,4 +1,4 @@
-import { count, desc, eq, ilike, or } from "drizzle-orm";
+import { and, count, desc, eq, ilike, or } from "drizzle-orm";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { db } from "@/lib/db";
@@ -11,10 +11,10 @@ export default async function AdminUsersPage({
 	searchParams,
 }: {
 	params: Promise<{ locale: string }>;
-	searchParams: Promise<{ q?: string; page?: string }>;
+	searchParams: Promise<{ q?: string; page?: string; status?: string }>;
 }) {
 	const { locale } = await params;
-	const { q = "", page: p } = await searchParams;
+	const { q = "", page: p, status = "" } = await searchParams;
 	const page = Math.max(0, Number(p) || 0);
 	const like = `%${q.trim()}%`;
 
@@ -30,20 +30,38 @@ export default async function AdminUsersPage({
 		})
 		.from(users)
 		.leftJoin(gardens, eq(gardens.userId, users.id))
-		.where(q.trim() ? or(ilike(users.email, like), ilike(users.name, like)) : undefined)
+		.where(
+			and(
+				q.trim() ? or(ilike(users.email, like), ilike(users.name, like)) : undefined,
+				status ? eq(users.subscriptionStatus, status) : undefined,
+			),
+		)
 		.groupBy(users.id)
 		.orderBy(desc(users.createdAt))
 		.limit(PAGE + 1)
 		.offset(page * PAGE);
 	const hasNext = rows.length > PAGE;
-	const qs = (n: number) => `?${new URLSearchParams({ ...(q && { q }), page: String(n) })}`;
+	const qs = (n: number) =>
+		`?${new URLSearchParams({ ...(q && { q }), ...(status && { status }), page: String(n) })}`;
 
 	return (
 		<div>
 			<h1 className="text-2xl font-bold">Utilizadores</h1>
 			<form className="mt-4 max-w-sm">
 				<Input name="q" defaultValue={q} placeholder="Pesquisar por email ou nome" />
+				{status && <input type="hidden" name="status" value={status} />}
 			</form>
+			{status && (
+				<p className="mt-2 text-sm text-ink-soft">
+					Só estado <strong>{status}</strong> ·{" "}
+					<Link
+						href={`/${locale}/admin/users${q ? `?q=${encodeURIComponent(q)}` : ""}`}
+						className="underline"
+					>
+						limpar
+					</Link>
+				</p>
+			)}
 			<table className="mt-6 w-full text-left text-sm">
 				<thead className="border-b border-line text-ink-soft">
 					<tr>

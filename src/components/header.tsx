@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Calculator, LayoutDashboard, CreditCard, User, LogOut } from "lucide-react";
+import { Menu, X, Calculator, LayoutDashboard, CreditCard, User, LogOut, Shield } from "lucide-react";
 import { useState } from "react";
 import { useEffect } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -18,8 +18,23 @@ export function Header() {
 	const { data: session, isPending } = authClient.useSession();
 	const isLoggedIn = !!session;
 	const pathname = usePathname();
+	// null = ainda não se sabe; só esconde/mostra o menu, quem decide é o servidor.
+	const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+	const userId = session?.user.id;
 
-	const navigation = [
+	useEffect(() => {
+		if (!userId) return setIsAdmin(null);
+		let live = true;
+		fetch("/api/auth/me")
+			.then((r) => (r.ok ? r.json() : { isAdmin: false }))
+			.catch(() => ({ isAdmin: false }))
+			.then((d) => live && setIsAdmin(d.isAdmin === true));
+		return () => {
+			live = false;
+		};
+	}, [userId]);
+
+	const userNav = [
 		{
 			name: "Calculadora",
 			href: `/${locale}/calculator`,
@@ -32,6 +47,12 @@ export function Header() {
 		},
 		{ name: "Planos", href: `/${locale}/pricing`, icon: CreditCard },
 	];
+	const navigation =
+		isPending || (isLoggedIn && isAdmin === null)
+			? [] // evita piscar o menu errado enquanto se descobre quem é
+			: isAdmin
+				? [{ name: "Admin", href: `/${locale}/admin`, icon: Shield }]
+				: userNav;
 
 	// recarga completa: as páginas server-side voltam a ler a sessão
 	const handleSignOut = async () => {

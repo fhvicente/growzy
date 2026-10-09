@@ -1,4 +1,5 @@
 import { type ReactNode } from "react";
+import { PageReveal } from "@/components/page-reveal";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -16,5 +17,5 @@ export default async function ProtectedLayout({ children, params }: ProtectedLay
 		redirect(`/${locale}/login`);
 	}
 
-	return <>{children}</>;
+	return <PageReveal>{children}</PageReveal>;
 }

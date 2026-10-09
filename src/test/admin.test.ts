@@ -1,9 +1,13 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import Stripe from "stripe";
+import { POST as setPrices } from "@/app/api/admin/catalog/route";
 import { POST as action } from "@/app/api/admin/users/[id]/route";
-import { auditLogs, gardens, sessions, users } from "@/lib/schema";
+import { POST as reprocess } from "@/app/api/admin/webhook-logs/[id]/route";
+import { applyCatalogPrices } from "@/lib/catalog-prices";
+import { cropBySlug } from "@/lib/garden/catalog";
+import { auditLogs, catalogPrices, gardens, sessions, subscriptions, users, webhookLogs } from "@/lib/schema";
 import { getSessionUser } from "@/lib/session";
 import { ctx, db, getUser, req, signUp } from "./api.ts";
 
@@ -106,4 +110,110 @@ test("resync: 400 sem cliente Stripe, copia a subscrição real, free se cancela
 	const u = await getUser(user.id);
 	assert.equal(u.subscriptionPlan, "free");
 	assert.equal(u.subscriptionStatus, "canceled");
+});
+
+test("reprocessar um webhook falhado volta a aplicá-lo e audita", async () => {
+	const { user } = await signUp();
+	const subId = `sub_${crypto.randomUUID()}`;
+	await db
+		.insert(subscriptions)
+		.values({ userId: user.id, stripeId: subId, stripeStatus: "active", plan: "standard" });
+	const payload = JSON.stringify({
+		id: `evt_${crypto.randomUUID()}`,
+		type: "invoice.payment_failed",
+		data: { object: { id: "in_r", object: "invoice", subscription: subId } },
+	});
+	const [log] = await db
+		.insert(webhookLogs)
+		.values({ eventType: "invoice.payment_failed", payload, status: "error", errorMessage: "db em baixo" })
+		.returning();
+	const { cookie } = await signUp();
+	assert.equal(
+		(await reprocess(req(`/api/admin/webhook-logs/${log.id}`, { method: "POST", cookie }), ctx(log.id))).status,
+		403,
+	);
+	const r = await reprocess(
+		req(`/api/admin/webhook-logs/${log.id}`, { method: "POST", cookie: admin.cookie }),
+		ctx(log.id),
+	);
+	assert.equal(r.status, 200);
+	assert.equal((await getUser(user.id)).subscriptionStatus, "past_due");
+	const [after] = await db.select().from(webhookLogs).where(eq(webhookLogs.id, log.id));
+	assert.equal(after.status, "success");
+	assert.equal(after.errorMessage, null);
+	const [a] = await db
+		.select()
+		.from(auditLogs)
+		.where(eq(auditLogs.action, "reprocess-webhook"))
+		.orderBy(desc(auditLogs.id))
+		.limit(1);
+	assert.deepEqual(a.details, { logId: log.id, eventType: "invoice.payment_failed", status: "success" });
+});
+
+test("reprocessar: 404 se não existe, 400 sem payload", async () => {
+	const [log] = await db
+		.insert(webhookLogs)
+		.values({ eventType: "unknown", payload: "", status: "error" })
+		.returning();
+	const call = (id: string | number) =>
+		reprocess(req(`/api/admin/webhook-logs/${id}`, { method: "POST", cookie: admin.cookie }), ctx(id));
+	assert.equal((await call("abc")).status, 404);
+	assert.equal((await call(999999999)).status, 404);
+	assert.equal((await call(log.id)).status, 400);
+});
+
+test("preços do catálogo: editar aplica ao motor, repor apaga a linha", async () => {
+	const save = (body: unknown, cookie = admin.cookie) => setPrices(req("/api/admin/catalog", { body, cookie }));
+	const tomate = cropBySlug.get("tomate")!;
+	const original = { ...tomate.price.planta! };
+
+	assert.equal(
+		(await save({ slug: "tomate", prices: [{ field: "planta", min: 2, max: 3 }] }, (await signUp()).cookie)).status,
+		403,
+	);
+	assert.equal((await save({ slug: "tomate", prices: [{ field: "planta", min: 2, max: 3 }] })).status, 200);
+	assert.equal(tomate.price.planta!.min, 2);
+	await applyCatalogPrices(true); // outra instância a ler da BD chega ao mesmo
+	assert.equal(tomate.price.planta!.max, 3);
+	const [a] = await db
+		.select()
+		.from(auditLogs)
+		.where(eq(auditLogs.action, "set-price"))
+		.orderBy(desc(auditLogs.id))
+		.limit(1);
+	assert.deepEqual(a.details, {
+		slug: "tomate",
+		changes: [{ field: "planta", from: [original.min, original.max], to: [2, 3] }],
+	});
+
+	// mercado: um só valor
+	assert.equal((await save({ slug: "tomate", prices: [{ field: "mercado", min: 9, max: 1 }] })).status, 200);
+	assert.equal(tomate.marketEurKg, 9);
+
+	// repor = guardar o valor do código
+	assert.equal(
+		(
+			await save({
+				slug: "tomate",
+				prices: [
+					{ field: "planta", min: original.min, max: original.max },
+					{ field: "mercado", min: 2.2, max: 2.2 },
+				],
+			})
+		).status,
+		200,
+	);
+	assert.equal((await db.select().from(catalogPrices).where(eq(catalogPrices.slug, "tomate"))).length, 0);
+	assert.deepEqual(tomate.price.planta, original);
+	assert.equal(tomate.marketEurKg, 2.2);
+});
+
+test("preços do catálogo: 400 para slug, campo ou intervalo inválidos", async () => {
+	const save = (body: unknown) => setPrices(req("/api/admin/catalog", { body, cookie: admin.cookie }));
+	assert.equal((await save({ slug: "inventada", prices: [{ field: "semente", min: 1, max: 2 }] })).status, 400);
+	assert.equal((await save({ slug: "feijao-verde", prices: [{ field: "planta", min: 1, max: 2 }] })).status, 400);
+	assert.equal((await save({ slug: "tomate", prices: [{ field: "material", min: 1, max: 2 }] })).status, 400);
+	assert.equal((await save({ slug: "tomate", prices: [{ field: "semente", min: 3, max: 2 }] })).status, 400);
+	assert.equal((await save({ slug: "tomate", prices: [{ field: "semente", min: -1, max: 2 }] })).status, 400);
+	assert.equal((await save({ slug: "vaso-3l", prices: [] })).status, 400);
 });

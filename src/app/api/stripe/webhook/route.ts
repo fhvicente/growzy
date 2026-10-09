@@ -2,10 +2,9 @@ import { eq } from "drizzle-orm";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
-import { applySubscription, stripeClient } from "@/lib/billing";
+import { handleStripeEvent, stripeClient } from "@/lib/billing";
 import { db } from "@/lib/db";
-import { getPlanFromPriceId } from "@/lib/plans";
-import { subscriptions, users, webhookLogs } from "@/lib/schema";
+import { webhookLogs } from "@/lib/schema";
 
 export async function POST(request: NextRequest) {
 	const stripe = stripeClient();
@@ -52,116 +51,7 @@ export async function POST(request: NextRequest) {
 
 	// Processar eventos do Stripe
 	try {
-		switch (event.type) {
-			case "checkout.session.completed": {
-				const session = event.data.object as Stripe.Checkout.Session;
-
-				// Recuperar a subscription criada
-				if (session.subscription && session.client_reference_id) {
-					const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
-
-					const priceId = subscription.items.data[0]?.price.id;
-					const plan = priceId ? getPlanFromPriceId(priceId) : "free";
-
-					// Criar registro de assinatura
-					await db
-						.insert(subscriptions)
-						.values({
-							userId: session.client_reference_id,
-							stripeId: subscription.id,
-							stripeStatus: subscription.status,
-							stripePrice: priceId,
-							plan,
-							quantity: subscription.items.data[0]?.quantity || 1,
-						})
-						// O Stripe repete eventos; a segunda entrega não deve falhar.
-						.onConflictDoNothing({ target: subscriptions.stripeId });
-
-					// Atualizar usuário com o plano e status
-					await db
-						.update(users)
-						.set({
-							stripeId: session.customer as string,
-							subscriptionPlan: plan,
-							subscriptionStatus: subscription.status,
-						})
-						.where(eq(users.id, session.client_reference_id));
-				}
-				break;
-			}
-
-			case "customer.subscription.updated": {
-				const subscription = event.data.object as Stripe.Subscription;
-				const [existingSub] = await db
-					.select()
-					.from(subscriptions)
-					.where(eq(subscriptions.stripeId, subscription.id))
-					.limit(1);
-
-				if (existingSub) {
-					await applySubscription(existingSub.userId, subscription);
-				}
-				break;
-			}
-
-			case "customer.subscription.deleted": {
-				const subscription = event.data.object as Stripe.Subscription;
-
-				// Atualizar registro de assinatura
-				await db
-					.update(subscriptions)
-					.set({
-						stripeStatus: "canceled",
-						endsAt: new Date(),
-					})
-					.where(eq(subscriptions.stripeId, subscription.id));
-
-				// Voltar usuário para plano gratuito
-				const [existingSub] = await db
-					.select()
-					.from(subscriptions)
-					.where(eq(subscriptions.stripeId, subscription.id))
-					.limit(1);
-
-				if (existingSub) {
-					await db
-						.update(users)
-						.set({
-							subscriptionPlan: "free",
-							subscriptionStatus: "inactive",
-						})
-						.where(eq(users.id, existingSub.userId));
-				}
-				break;
-			}
-
-			case "invoice.payment_failed": {
-				const invoice = event.data.object as Stripe.Invoice & {
-					subscription?: string | Stripe.Subscription | null;
-				};
-				const subscriptionId =
-					typeof invoice.subscription === "string" ? invoice.subscription : invoice.subscription?.id;
-
-				// Notificar usuário sobre falha no pagamento
-				if (subscriptionId) {
-					const [existingSub] = await db
-						.select()
-						.from(subscriptions)
-						.where(eq(subscriptions.stripeId, subscriptionId))
-						.limit(1);
-
-					if (existingSub) {
-						await db
-							.update(users)
-							.set({
-								subscriptionStatus: "past_due",
-							})
-							.where(eq(users.id, existingSub.userId));
-					}
-				}
-				break;
-			}
-		}
+		await handleStripeEvent(stripe, event);
 
 		// Marcar log como sucesso
 		if (webhookLogId) {
