@@ -1,16 +1,14 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import Stripe from "stripe";
-import { db } from "@/lib/db";
-import { subscriptions, users, webhookLogs } from "@/lib/schema";
 import { eq } from "drizzle-orm";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import type Stripe from "stripe";
+import { applySubscription, stripeClient } from "@/lib/billing";
+import { db } from "@/lib/db";
 import { getPlanFromPriceId } from "@/lib/plans";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-	apiVersion: "2026-01-28.clover",
-});
+import { subscriptions, users, webhookLogs } from "@/lib/schema";
 
 export async function POST(request: NextRequest) {
+	const stripe = stripeClient();
 	const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 	if (!webhookSecret) {
 		return NextResponse.json({ ok: false, error: "Webhook secret missing" }, { status: 500 });
@@ -41,9 +39,10 @@ export async function POST(request: NextRequest) {
 
 		webhookLogId = log?.id ?? null;
 	} catch (error: any) {
+		// Corpo não autenticado: não se guarda, senão qualquer pessoa enche a base de dados.
 		await db.insert(webhookLogs).values({
 			eventType: "unknown",
-			payload,
+			payload: "",
 			status: "error",
 			errorMessage: error?.message ?? "Invalid signature",
 		});
@@ -65,14 +64,18 @@ export async function POST(request: NextRequest) {
 					const plan = priceId ? getPlanFromPriceId(priceId) : "free";
 
 					// Criar registro de assinatura
-					await db.insert(subscriptions).values({
-						userId: session.client_reference_id,
-						stripeId: subscription.id,
-						stripeStatus: subscription.status,
-						stripePrice: priceId,
-						plan,
-						quantity: subscription.items.data[0]?.quantity || 1,
-					});
+					await db
+						.insert(subscriptions)
+						.values({
+							userId: session.client_reference_id,
+							stripeId: subscription.id,
+							stripeStatus: subscription.status,
+							stripePrice: priceId,
+							plan,
+							quantity: subscription.items.data[0]?.quantity || 1,
+						})
+						// O Stripe repete eventos; a segunda entrega não deve falhar.
+						.onConflictDoNothing({ target: subscriptions.stripeId });
 
 					// Atualizar usuário com o plano e status
 					await db
@@ -89,20 +92,6 @@ export async function POST(request: NextRequest) {
 
 			case "customer.subscription.updated": {
 				const subscription = event.data.object as Stripe.Subscription;
-				const priceId = subscription.items.data[0]?.price.id;
-				const plan = priceId ? getPlanFromPriceId(priceId) : "free";
-
-				// Atualizar registro de assinatura
-				await db
-					.update(subscriptions)
-					.set({
-						stripeStatus: subscription.status,
-						stripePrice: priceId,
-						plan,
-					})
-					.where(eq(subscriptions.stripeId, subscription.id));
-
-				// Atualizar plano do usuário
 				const [existingSub] = await db
 					.select()
 					.from(subscriptions)
@@ -110,13 +99,7 @@ export async function POST(request: NextRequest) {
 					.limit(1);
 
 				if (existingSub) {
-					await db
-						.update(users)
-						.set({
-							subscriptionPlan: plan,
-							subscriptionStatus: subscription.status,
-						})
-						.where(eq(users.id, existingSub.userId));
+					await applySubscription(existingSub.userId, subscription);
 				}
 				break;
 			}

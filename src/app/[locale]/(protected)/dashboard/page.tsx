@@ -4,6 +4,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { MONTHS, everyLabel } from "@/components/garden/garden-report";
 import { Button } from "@/components/ui/button";
+import { isAdmin } from "@/lib/admin";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { cropBySlug } from "@/lib/garden/catalog";
@@ -24,6 +25,8 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
 	if (!session) {
 		redirect(`/${locale}/login`);
 	}
+	// A conta admin só gere o sistema: o "dashboard" dela são os KPIs.
+	if (isAdmin(session.user.email)) redirect(`/${locale}/admin`);
 
 	const [rows, plan] = await Promise.all([
 		db.select().from(gardens).where(eq(gardens.userId, session.user.id)).orderBy(desc(gardens.updatedAt)),

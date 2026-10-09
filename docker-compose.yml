@@ -4,10 +4,11 @@ services:
         container_name: growzy-postgres
         environment:
             POSTGRES_USER: postgres
-            POSTGRES_PASSWORD: postgres
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}
             POSTGRES_DB: growzy
         ports:
-            - "5433:5432"
+            # Só acessível a partir da própria máquina.
+            - "127.0.0.1:5433:5432"
         volumes:
             - postgres_data:/var/lib/postgresql/data
 
@@ -15,12 +16,6 @@ services:
         build:
             context: .
             args:
-                BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
-                BETTER_AUTH_URL: ${BETTER_AUTH_URL}
-                BETTER_AUTH_BASE_URL: ${BETTER_AUTH_BASE_URL}
-                STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
-                STRIPE_STANDARD_PRICE_ID: ${STRIPE_STANDARD_PRICE_ID}
-                STRIPE_PREMIUM_PRICE_ID: ${STRIPE_PREMIUM_PRICE_ID}
                 NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME}
         container_name: growzy-next
         environment:
@@ -32,6 +27,7 @@ services:
             STRIPE_STANDARD_PRICE_ID: ${STRIPE_STANDARD_PRICE_ID}
             STRIPE_PREMIUM_PRICE_ID: ${STRIPE_PREMIUM_PRICE_ID}
             NEXT_PUBLIC_APP_NAME: Growzy
+            ADMIN_EMAILS: ${ADMIN_EMAILS}
         ports:
             - "3000:3000"
         depends_on:

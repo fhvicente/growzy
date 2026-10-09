@@ -75,7 +75,7 @@ $DOCKER_CMD run -d \
   -e POSTGRES_USER="postgres" \
   -e POSTGRES_PASSWORD="$DB_PASSWORD" \
   -e POSTGRES_DB="$DB_NAME" \
-  -p "$DB_PORT":5432 \
+  -p 127.0.0.1:"$DB_PORT":5432 \
   docker.io/pgvector/pgvector:pg17 && echo "Database container '$DB_CONTAINER_NAME' was successfully created"
   
 echo "Database is running on port $DB_PORT"
