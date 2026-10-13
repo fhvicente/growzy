@@ -10,6 +10,15 @@ export const stripeClient = () => new Stripe(process.env.STRIPE_SECRET_KEY || ""
 // Estados em que o cliente ainda tem direito ao plano pago (past_due = período de tolerância).
 export const LIVE_STATUSES = new Set(["active", "trialing", "past_due"]);
 
+/** Cancela no Stripe as subscrições ainda vivas do cliente. Atira se o Stripe falhar. */
+export async function cancelLiveSubscriptions(customer: string) {
+	const stripe = stripeClient();
+	const { data } = await stripe.subscriptions.list({ customer, status: "all", limit: 100 });
+	const live = data.filter((s) => LIVE_STATUSES.has(s.status));
+	for (const s of live) await stripe.subscriptions.cancel(s.id);
+	return live.length;
+}
+
 /** Copia o estado de uma subscrição do Stripe para `subscriptions` e para o plano do utilizador. */
 export async function applySubscription(userId: string, subscription: Stripe.Subscription) {
 	const priceId = subscription.items.data[0]?.price.id;

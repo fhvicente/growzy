@@ -11,7 +11,6 @@ export const users = pgTable("users", {
 	stripeId: varchar("stripe_id", { length: 255 }),
 	subscriptionPlan: varchar("subscription_plan", { length: 50 }).default("free").notNull(),
 	subscriptionStatus: varchar("subscription_status", { length: 50 }).default("inactive"),
-	rememberToken: varchar("remember_token", { length: 100 }),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 	updatedAt: timestamp("updated_at")
 		.defaultNow()
@@ -116,11 +115,11 @@ export const gardens = pgTable(
 	(t) => ({ gardensUserIdx: index("gardens_user_idx").on(t.userId) }),
 );
 
+// Sem payload: o evento do Stripe traz email, nome e morada. Reprocessar volta a pedi-lo ao Stripe (que o guarda 30 dias).
 export const webhookLogs = pgTable("webhook_logs", {
 	id: serial("id").primaryKey(),
 	eventId: varchar("event_id", { length: 255 }),
 	eventType: varchar("event_type", { length: 255 }).notNull(),
-	payload: text("payload").notNull(),
 	status: varchar("status", { length: 50 }).default("success").notNull(),
 	errorMessage: text("error_message"),
 	createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),

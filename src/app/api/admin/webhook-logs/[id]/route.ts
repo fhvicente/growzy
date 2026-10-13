@@ -1,13 +1,12 @@
 import { eq } from "drizzle-orm";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import type Stripe from "stripe";
 import { audit, requireAdmin } from "@/lib/admin";
 import { handleStripeEvent, stripeClient } from "@/lib/billing";
 import { db } from "@/lib/db";
 import { webhookLogs } from "@/lib/schema";
 
-// Reprocessa o payload guardado. Só eventos com assinatura válida têm payload (os outros ficam com "").
+// Volta a pedir o evento ao Stripe e aplica-o. Só eventos com assinatura válida têm eventId.
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
 	const { user: admin, res } = await requireAdmin(request);
 	if (res) return res;
@@ -17,12 +16,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 		? await db.select().from(webhookLogs).where(eq(webhookLogs.id, id)).limit(1)
 		: [];
 	if (!log) return NextResponse.json({ ok: false, error: "Evento não encontrado" }, { status: 404 });
-	if (!log.payload) return NextResponse.json({ ok: false, error: "Evento sem payload válido" }, { status: 400 });
+	if (!log.eventId) return NextResponse.json({ ok: false, error: "Evento sem assinatura válida" }, { status: 400 });
 
 	let status = "success";
 	let errorMessage: string | null = null;
 	try {
-		await handleStripeEvent(stripeClient(), JSON.parse(log.payload) as Stripe.Event);
+		const stripe = stripeClient();
+		await handleStripeEvent(stripe, await stripe.events.retrieve(log.eventId));
 	} catch (error) {
 		status = "error";
 		errorMessage = error instanceof Error ? error.message : "Erro desconhecido";

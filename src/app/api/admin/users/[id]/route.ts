@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { z } from "zod";
 import { audit, requireAdmin } from "@/lib/admin";
-import { applySubscription, LIVE_STATUSES, stripeClient } from "@/lib/billing";
+import { applySubscription, cancelLiveSubscriptions, stripeClient } from "@/lib/billing";
 import { db } from "@/lib/db";
 import { PLAN_FEATURES, type PlanType } from "@/lib/plans";
 import { sessions, subscriptions, users } from "@/lib/schema";
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 				});
 				latest = data[0];
 			} catch (error) {
-				console.error("admin resync failed", error);
+				console.error("admin resync failed", (error as Error).message);
 				return fail(502, "Stripe indisponível");
 			}
 			let plan = "free";
@@ -76,18 +76,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 			let canceledSubs = 0;
 			if (target.stripeId) {
 				try {
-					const stripe = stripeClient();
-					const { data } = await stripe.subscriptions.list({
-						customer: target.stripeId,
-						status: "all",
-						limit: 100,
-					});
-					for (const s of data.filter((s) => LIVE_STATUSES.has(s.status))) {
-						await stripe.subscriptions.cancel(s.id);
-						canceledSubs++;
-					}
+					canceledSubs = await cancelLiveSubscriptions(target.stripeId);
 				} catch (error) {
-					console.error("admin delete: stripe cancel failed", error);
+					console.error("admin delete: stripe cancel failed", (error as Error).message);
 					return fail(502, "Não foi possível cancelar no Stripe; nada foi apagado");
 				}
 			}

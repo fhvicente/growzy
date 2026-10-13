@@ -112,20 +112,21 @@ test("resync: 400 sem cliente Stripe, copia a subscrição real, free se cancela
 	assert.equal(u.subscriptionStatus, "canceled");
 });
 
-test("reprocessar um webhook falhado volta a aplicá-lo e audita", async () => {
+test("reprocessar um webhook falhado volta a pedi-lo ao Stripe, aplica-o e audita", async (t) => {
 	const { user } = await signUp();
 	const subId = `sub_${crypto.randomUUID()}`;
 	await db
 		.insert(subscriptions)
 		.values({ userId: user.id, stripeId: subId, stripeStatus: "active", plan: "standard" });
-	const payload = JSON.stringify({
-		id: `evt_${crypto.randomUUID()}`,
+	const eventId = `evt_${crypto.randomUUID()}`;
+	const retrieve = t.mock.method(proto(stripe.events), "retrieve", async () => ({
+		id: eventId,
 		type: "invoice.payment_failed",
 		data: { object: { id: "in_r", object: "invoice", subscription: subId } },
-	});
+	}));
 	const [log] = await db
 		.insert(webhookLogs)
-		.values({ eventType: "invoice.payment_failed", payload, status: "error", errorMessage: "db em baixo" })
+		.values({ eventId, eventType: "invoice.payment_failed", status: "error", errorMessage: "db em baixo" })
 		.returning();
 	const { cookie } = await signUp();
 	assert.equal(
@@ -137,6 +138,7 @@ test("reprocessar um webhook falhado volta a aplicá-lo e audita", async () => {
 		ctx(log.id),
 	);
 	assert.equal(r.status, 200);
+	assert.equal(retrieve.mock.calls[0].arguments[0], eventId);
 	assert.equal((await getUser(user.id)).subscriptionStatus, "past_due");
 	const [after] = await db.select().from(webhookLogs).where(eq(webhookLogs.id, log.id));
 	assert.equal(after.status, "success");
@@ -150,10 +152,10 @@ test("reprocessar um webhook falhado volta a aplicá-lo e audita", async () => {
 	assert.deepEqual(a.details, { logId: log.id, eventType: "invoice.payment_failed", status: "success" });
 });
 
-test("reprocessar: 404 se não existe, 400 sem payload", async () => {
+test("reprocessar: 404 se não existe, 400 sem eventId", async () => {
 	const [log] = await db
 		.insert(webhookLogs)
-		.values({ eventType: "unknown", payload: "", status: "error" })
+		.values({ eventType: "unknown", status: "error" })
 		.returning();
 	const call = (id: string | number) =>
 		reprocess(req(`/api/admin/webhook-logs/${id}`, { method: "POST", cookie: admin.cookie }), ctx(id));

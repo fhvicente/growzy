@@ -66,11 +66,24 @@ export function PasswordForm() {
 		<form onSubmit={onSubmit} className="space-y-4">
 			<div className="space-y-2">
 				<Label htmlFor="currentPassword">Palavra-passe atual</Label>
-				<Input id="currentPassword" name="currentPassword" type="password" autoComplete="current-password" required />
+				<Input
+					id="currentPassword"
+					name="currentPassword"
+					type="password"
+					autoComplete="current-password"
+					required
+				/>
 			</div>
 			<div className="space-y-2">
 				<Label htmlFor="newPassword">Nova palavra-passe</Label>
-				<Input id="newPassword" name="newPassword" type="password" autoComplete="new-password" minLength={8} required />
+				<Input
+					id="newPassword"
+					name="newPassword"
+					type="password"
+					autoComplete="new-password"
+					minLength={8}
+					required
+				/>
 			</div>
 			<div className="space-y-2">
 				<Label htmlFor="confirm">Repete a nova palavra-passe</Label>
@@ -78,6 +91,38 @@ export function PasswordForm() {
 			</div>
 			<div className="flex items-center gap-3">
 				<Button type="submit">Alterar palavra-passe</Button>
+				<span role="status" className="text-sm text-ink-soft">
+					{status}
+				</span>
+			</div>
+		</form>
+	);
+}
+
+export function DeleteAccountForm({ locale }: { locale: string }) {
+	const [status, setStatus] = useState("");
+
+	async function onSubmit(e: React.SubmitEvent<HTMLFormElement>) {
+		e.preventDefault();
+		if (!confirm("Apagar a conta e todas as hortas? Não dá para desfazer.")) return;
+		setStatus("A apagar…");
+		const { error } = await authClient.deleteUser({
+			password: String(new FormData(e.currentTarget).get("password")),
+		});
+		if (error) return setStatus(error.message ?? "Não foi possível apagar a conta.");
+		window.location.href = `/${locale}`;
+	}
+
+	return (
+		<form onSubmit={onSubmit} className="space-y-4">
+			<div className="space-y-2">
+				<Label htmlFor="deletePassword">Palavra-passe</Label>
+				<Input id="deletePassword" name="password" type="password" autoComplete="current-password" required />
+			</div>
+			<div className="flex items-center gap-3">
+				<Button type="submit" variant="destructive">
+					Apagar conta
+				</Button>
 				<span role="status" className="text-sm text-ink-soft">
 					{status}
 				</span>

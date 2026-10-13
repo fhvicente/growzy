@@ -7,7 +7,7 @@ import { db } from "@/lib/db";
 import { getUserPlan } from "@/lib/plan-limits";
 import { getPlanFeatures } from "@/lib/plans";
 import { gardens } from "@/lib/schema";
-import { NameForm, PasswordForm } from "./profile-forms";
+import { DeleteAccountForm, NameForm, PasswordForm } from "./profile-forms";
 
 interface ProfilePageProps {
 	params: Promise<{ locale: string }>;
@@ -62,9 +62,31 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 					</p>
 					{plan === "free" && (
 						<div className="mt-5 max-w-xs">
-							<CheckoutButton plan="standard" label="Passar para Standard" className="bg-sprout text-ink hover:bg-sprout/85" />
+							<CheckoutButton
+								plan="standard"
+								label="Passar para Standard"
+								className="bg-sprout text-ink hover:bg-sprout/85"
+							/>
 						</div>
 					)}
+				</div>
+			</Section>
+
+			<Section title="Os teus dados" hint="Descarrega tudo o que guardamos, ou apaga a conta.">
+				<div className="space-y-8">
+					<a href="/api/account/export" download className="text-sm font-medium text-moss underline">
+						Descarregar os meus dados (JSON)
+					</a>
+					<div>
+						<p className="mb-4 text-sm text-ink-soft">
+							Apagar a conta remove as hortas e cancela a subscrição. As faturas ficam no Stripe pelo
+							prazo legal.{" "}
+							<a href={`/${locale}/privacidade`} className="underline">
+								Política de privacidade
+							</a>
+						</p>
+						<DeleteAccountForm locale={locale} />
+					</div>
 				</div>
 			</Section>
 		</div>

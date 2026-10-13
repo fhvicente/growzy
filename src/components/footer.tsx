@@ -8,12 +8,13 @@ export function Footer() {
 	const params = useParams();
 	const locale = (params?.locale as string) || "pt";
 
-	// ponytail: only routes that exist; add about/legal links when those pages ship
+	// ponytail: only routes that exist; add about/terms links when those pages ship
 	const links = [
 		{ name: "Calculadora", href: `/${locale}/calculator` },
 		{ name: "Dashboard", href: `/${locale}/dashboard` },
 		{ name: "Planos", href: `/${locale}/pricing` },
 		{ name: "Entrar", href: `/${locale}/login` },
+		{ name: "Privacidade", href: `/${locale}/privacidade` },
 	];
 
 	return (

@@ -31,17 +31,15 @@ export async function POST(request: NextRequest) {
 			.values({
 				eventId: event.id,
 				eventType: event.type,
-				payload,
 				status: "processing",
 			})
 			.returning();
 
 		webhookLogId = log?.id ?? null;
 	} catch (error: any) {
-		// Corpo não autenticado: não se guarda, senão qualquer pessoa enche a base de dados.
+		// Corpo não autenticado: só se regista a falha.
 		await db.insert(webhookLogs).values({
 			eventType: "unknown",
-			payload: "",
 			status: "error",
 			errorMessage: error?.message ?? "Invalid signature",
 		});
@@ -69,7 +67,7 @@ export async function POST(request: NextRequest) {
 				.where(eq(webhookLogs.id, webhookLogId));
 		}
 
-		console.error("Error processing webhook:", error);
+		console.error("Error processing webhook:", error?.message);
 		return NextResponse.json({ ok: false, error: "Error processing webhook" }, { status: 500 });
 	}
 

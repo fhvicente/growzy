@@ -110,7 +110,7 @@ test("webhook: sem assinatura 400, assinatura falsa 400 e nada é processado", a
 	assert.equal(r.status, 400);
 	assert.equal(await logOf(e.id), undefined, "evento com assinatura falsa não deve ser registado como válido");
 	const [last] = await db.select().from(webhookLogs).orderBy(desc(webhookLogs.id)).limit(1);
-	assert.equal(last.payload, "", "o corpo de um pedido sem assinatura válida não é guardado");
+	assert.equal(last.eventId, null, "pedido sem assinatura válida fica só como falha, sem dados do evento");
 });
 
 test("webhook: checkout.session.completed repetido pelo Stripe responde 200", async (t) => {

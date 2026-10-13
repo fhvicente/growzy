@@ -123,6 +123,13 @@ export function SignUpForm() {
 				/>
 			</div>
 			{error ? <p className="text-sm text-red-600">{error}</p> : null}
+			<p className="text-xs text-muted-foreground">
+				Ao criar conta, confirmas que leste a{" "}
+				<a href={`/${locale}/privacidade`} target="_blank" className="underline">
+					Política de Privacidade
+				</a>
+				.
+			</p>
 			<Button type="submit" disabled={isSubmitting}>
 				{isSubmitting ? "Criando..." : "Criar conta"}
 			</Button>

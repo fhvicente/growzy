@@ -55,14 +55,8 @@ export default async function WebhookLogsPage({ searchParams }: { searchParams: 
 							</td>
 							<td className="max-w-md">
 								{l.errorMessage && <p className="text-destructive">{l.errorMessage}</p>}
-								{l.payload && (
-									<details>
-										<summary className="cursor-pointer text-ink-soft">payload</summary>
-										<pre className="max-h-64 overflow-auto text-xs">{l.payload}</pre>
-									</details>
-								)}
 							</td>
-							<td>{l.payload && l.status !== "success" && <ReprocessButton id={l.id} />}</td>
+							<td>{l.eventId && l.status !== "success" && <ReprocessButton id={l.id} />}</td>
 						</tr>
 					))}
 				</tbody>
