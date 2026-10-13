@@ -57,6 +57,10 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
 				</li>
 			</ul>
 			<p>
+				A equipa do Growzy pode consultar a tua conta (email, nome, plano e nomes das hortas) para dar suporte e
+				resolver problemas de pagamento. As alterações que fizer à tua conta ficam registadas.
+			</p>
+			<p>
 				Não usamos cookies de publicidade nem de análise. O único cookie é o da sessão, necessário para
 				entrares.
 			</p>
